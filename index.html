@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, theme-color=#0f172a">
+    <title>হিসাব ও রুটিন</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%E0%A6%B9%E0%A6%BF%E0%A6%B8%E0%A6%BE%E0%A6%AC%22%2C%22short_name%22%3A%22%E0%A6%B9%E0%A6%BF%E0%A6%B8%E0%A6%BE%E0%A6%AC%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f172a%22%2C%22theme_color%22%3A%22%230f172a%22%7D">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --primary: #1e293b;
+            --accent: #f59e0b;
+            --accent-light: #fbbf24;
+            --danger: #ef4444;
+            --success: #10b981;
+            --border: #e2e8f0;
+            --shadow: 0 4px 12px rgba(0,0,0,0.06);
+            --radius: 16px;
+        }
+        .dark {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --text: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --primary: #f59e0b;
+            --accent: #f59e0b;
+            --border: #334155;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', 'Siyam Rupali', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 12px 12px 100px;
+            max-width: 500px;
+            margin: auto;
+            min-height: 100vh;
+        }
+        .banner {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            border-radius: var(--radius);
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .main-tabs { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+        .main-tabs button {
+            flex: 1; min-width: 50px; padding: 10px 5px; border: 1px solid var(--border);
+            background: var(--surface); color: var(--text); border-radius: 10px;
+            font-weight: 700; font-size: 0.8rem; cursor: pointer;
+        }
+        .main-tabs button.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 14px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+        .btn {
+            background: var(--primary); color: white; border: none;
+            padding: 10px; border-radius: 12px; font-weight: 600; cursor: pointer;
+            width: 100%; margin-top: 6px;
+        }
+        .btn-accent { background: var(--accent); color: #0f172a; }
+        input, select, textarea {
+            width: 100%; padding: 10px; border: 1px solid var(--border);
+            border-radius: 10px; margin: 5px 0; background: var(--bg); color: var(--text);
+        }
+        .bottom-nav {
+            position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
+            width: calc(100% - 20px); max-width: 480px;
+            background: var(--surface); display: flex; justify-content: space-around;
+            padding: 10px 5px; border-radius: 20px; z-index: 20;
+            border: 1px solid var(--border);
+        }
+        .nav-item {
+            background: none; border: none; font-size: 0.6rem; display: flex;
+            flex-direction: column; align-items: center; color: var(--text-secondary);
+            cursor: pointer; padding: 4px 6px; border-radius: 10px;
+        }
+        .nav-item.active { background: var(--primary); color: white; }
+        .toast {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            background: #1e293b; color: white; padding: 8px 20px; border-radius: 20px;
+            z-index: 30; display: none;
+        }
+        .progress-bar { height: 8px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 5px 0; }
+        .progress-fill { height: 100%; background: var(--accent); border-radius: 10px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; }
+        .calendar-day { padding: 8px; border-radius: 8px; background: var(--bg); cursor: pointer; }
+        .calendar-day.selected { background: var(--primary); color: white; }
+        .calendar-day.today { border: 2px solid var(--accent); }
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center;
+            z-index: 100; visibility: hidden;
+        }
+        .overlay.active { visibility: visible; }
+        .overlay-card { background: white; padding: 20px; border-radius: 16px; text-align: center; max-width: 300px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<!-- ব্যানার -->
+<div class="banner">
+    <div><div style="font-size:1.3rem;font-weight:700;" id="dayName"></div><div id="dateFull" style="font-size:0.85rem;opacity:0.9;"></div></div>
+    <div id="timeLive" style="background:rgba(255,255,255,0.15);padding:6px 12px;border-radius:20px;"></div>
+</div>
+
+<!-- প্রধান ট্যাব -->
+<div class="main-tabs" id="mainTabBar">
+    <button class="active" data-tab="hisab">📊 হিসাব</button>
+    <button data-tab="routine">📋 রুটিন</button>
+    <button data-tab="ielts">🎯 IELTS</button>
+    <button data-tab="report">📈 রিপোর্ট</button>
+    <button data-tab="settings">⚙️ সেটিংস</button>
+    <button onclick="toggleDark()">🌓</button>
+</div>
+
+<!-- হিসাব সেকশন -->
+<div id="sec-hisab">
+    <div id="hisab-dashboard" class="hisab-page">
+        <div class="card"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="summaryCards"></div></div>
+        <div class="card"><h3>🎯 IELTS সঞ্চয়</h3><div class="progress-bar"><div id="ieltsProgress" class="progress-fill" style="width:0%;"></div></div><p id="ieltsText"></p></div>
+        <div class="card"><h3>📈 আগামী</h3><div id="futureTx"></div></div>
+        <div class="card"><h3>📋 সাম্প্রতিক</h3><div id="recentTx"></div></div>
+    </div>
+    <div id="hisab-calendar" class="hisab-page hidden"><div class="card"><div style="display:flex;justify-content:space-between;"><button onclick="changeMonth(-1)">◀</button><h3 id="calMonthYear"></h3><button onclick="changeMonth(1)">▶</button></div><div class="calendar-grid" id="calGrid"></div><p><b id="selDateDisplay"></b></p><div id="dayDetail"></div><button class="btn" onclick="addForDate()">➕ যোগ</button></div></div>
+    <div id="hisab-debts" class="hisab-page hidden"><div class="card"><h3>💳 ঋণ</h3><div id="debtList"></div></div><div class="card"><h3>💸 পরিশোধ</h3><select id="debtSelect"></select><input type="number" id="debtAmt" placeholder="টাকা"><input type="date" id="debtDate"><button class="btn btn-accent" onclick="payDebt()">✅ পরিশোধ</button></div></div>
+    <div id="hisab-meals" class="hisab-page hidden"><div class="card"><h3>🍽️ আজকের খাবার</h3><div id="mealToday"></div><div style="display:flex;gap:4px;"><select id="mealType"><option>সকাল</option><option>দুপুর</option><option>রাত</option></select><input type="text" id="mealItem" placeholder="কী"><input type="number" id="mealCost" placeholder="টাকা" style="width:70px;"></div><button class="btn" onclick="addMeal()">➕ যোগ</button></div></div>
+    <div id="hisab-add" class="hisab-page hidden"><div class="card"><h3>➕ লেনদেন</h3><select id="transType"><option value="income">আয়</option><option value="expense">ব্যয়</option></select><select id="transCat"></select><input type="number" id="transAmt" placeholder="টাকা"><input type="date" id="transDate"><input type="text" id="transNote" placeholder="নোট"><button class="btn btn-accent" onclick="addTx()">💾 সংরক্ষণ</button></div></div>
+</div>
+
+<!-- রুটিন সেকশন -->
+<div id="sec-routine" class="hidden">
+    <div class="card"><button class="btn" id="enableAlarmBtn" onclick="enableAlarms()">🔔 অ্যালার্ম সক্রিয় করুন</button></div>
+    <div class="card"><h3>📅 চেকলিস্ট</h3><div id="checklistContainer"></div></div>
+    <div class="card"><h3>⏳ পোমোডোরো</h3><div style="font-size:40px;text-align:center;" id="timerDisplay">25:00</div><input type="text" id="courseName" placeholder="কোর্স"><div style="display:flex;gap:4px;"><button class="btn" onclick="startPomodoro(25)">📖 ২৫</button><button class="btn" onclick="startPomodoro(5)">☕ ৫</button><button class="btn" style="background:#d62828;" onclick="stopTimer()">⏹️</button></div><button class="btn" onclick="logSessionManual()">✅ সেশন যোগ</button><div id="sessionList"></div></div>
+    <div class="card"><h3>📝 পরীক্ষা</h3><input type="text" id="examSubject" placeholder="বিষয়"><input type="date" id="examDate"><input type="time" id="examTime"><button class="btn" onclick="addExam()">➕ যোগ</button><div id="examList"></div></div>
+    <div class="card"><h3>🧩 অভ্যাস</h3><input type="text" id="newHabit" placeholder="অভ্যাস"><button class="btn" onclick="addHabit()">➕ যোগ</button><div id="habitList"></div></div>
+    <div class="card"><h3>💡 আজকের নোট</h3><textarea id="journalEntry" rows="3"></textarea><button class="btn" onclick="saveJournal()">💾 সংরক্ষণ</button></div>
+</div>
+
+<!-- IELTS সেকশন -->
+<div id="sec-ielts" class="hidden">
+    <div class="card"><h3>📊 IELTS মডিউল</h3><div id="ieltsModules"></div></div>
+    <div class="card"><h3>📝 মক টেস্ট</h3><input type="date" id="mockDate"><input type="number" id="mockScore" placeholder="স্কোর (0-9)" step="0.5"><select id="mockModule"><option>Reading</option><option>Writing</option><option>Listening</option><option>Speaking</option></select><button class="btn" onclick="addMockScore()">➕ যোগ</button><div id="mockHistory"></div></div>
+</div>
+
+<!-- রিপোর্ট সেকশন -->
+<div id="sec-report" class="hidden">
+    <div class="card"><h3>📊 মাসিক রিপোর্ট</h3><canvas id="reportChart" height="200"></canvas><div id="reportSummary"></div></div>
+</div>
+
+<!-- সেটিংস সেকশন -->
+<div id="sec-settings" class="hidden">
+    <div class="card"><h3>🎨 থিম</h3><select id="themeSelect" onchange="changeTheme()"><option value="default">ডিফল্ট</option><option value="ocean">সাগর নীল</option><option value="forest">বন সবুজ</option><option value="gold">সোনালি</option></select></div>
+    <div class="card"><h3>🔔 সাউন্ড</h3><select id="soundSelect"><option>ক্লাসিক</option><option>আযান</option><option>পাখি</option></select></div>
+    <div class="card"><h3>☁️ ডেটা</h3><button class="btn" onclick="exportData()">📤 এক্সপোর্ট</button><input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)"><button class="btn" onclick="document.getElementById('importFile').click()">📥 ইম্পোর্ট</button></div>
+</div>
+
+<!-- বটম নেভ (হিসাব) -->
+<div class="bottom-nav" id="bottomNav">
+    <button class="nav-item active" data-hisab="dashboard">📊 ড্যাশ</button>
+    <button class="nav-item" data-hisab="calendar">📅 ক্যালেন্ডার</button>
+    <button class="nav-item" data-hisab="debts">💳 ঋণ</button>
+    <button class="nav-item" data-hisab="meals">🍛 খাবার</button>
+    <button class="nav-item" data-hisab="add">➕ যোগ</button>
+</div>
+
+<div id="toast" class="toast"></div>
+<div id="alarmOverlay" class="overlay"><div class="overlay-card"><h2 id="alarmTitle"></h2><p id="alarmMessage"></p><button class="btn" onclick="dismissAlarm()">ঠিক আছে</button></div></div>
+
+<script>
+// ==================== FIREBASE ====================
+const firebaseConfig = {
+    apiKey: "AIzaSyDKniQatcaQPCnB87Gz-6XeLaXcAQc28rc",
+    authDomain: "hisab-tracker-9d867.firebaseapp.com",
+    databaseURL: "https://hisab-tracker-9d867-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "hisab-tracker-9d867",
+    storageBucket: "hisab-tracker-9d867.firebasestorage.app",
+    messagingSenderId: "424669328740",
+    appId: "1:424669328740:web:67bc86e8a0cb03850bb671"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ==================== গ্লোবাল ডেটা ====================
+let appData = {
+    transactions: [], debts: [], meals: [], calOffset: 0,
+    selectedDate: new Date().toISOString().slice(0,10),
+    ielts: { modules: { Reading:0, Writing:0, Listening:0, Speaking:0 }, mocks: [] },
+    habits: [], journal: {}
+};
+
+function ensureData() {
+    if (!appData.ielts) appData.ielts = { modules: { Reading:0, Writing:0, Listening:0, Speaking:0 }, mocks: [] };
+    if (!appData.ielts.modules) appData.ielts.modules = { Reading:0, Writing:0, Listening:0, Speaking:0 };
+    if (!appData.ielts.mocks) appData.ielts.mocks = [];
+    if (!appData.habits) appData.habits = [];
+    if (!appData.journal) appData.journal = {};
+}
+
+// Firebase sync
+db.ref('appData').on('value', snap => {
+    if (snap.val()) { appData = snap.val(); ensureData(); localStorage.setItem('hb', JSON.stringify(appData)); }
+    else { const b = localStorage.getItem('hb'); if (b) appData = JSON.parse(b); else initDefaults(); save(); }
+    refreshAll();
+}, () => { const b = localStorage.getItem('hb'); if (b) appData = JSON.parse(b); refreshAll(); });
+
+function save() { db.ref('appData').set(appData).catch(()=>{}); localStorage.setItem('hb', JSON.stringify(appData)); }
+
+function initDefaults() {
+    appData.debts = [
+        {id:'d1',name:'ক্রেডিট কার্ড বিল',total:15000,paid:0},{id:'d2',name:'ফাহিম',total:2000,paid:0},{id:'d3',name:'রেদওয়ান',total:2000,paid:0},
+        {id:'d4',name:'রোহান',total:7000,paid:0},{id:'d5',name:'বিকাশ লোন (২,০০০)',total:2000,paid:0},{id:'d6',name:'বিকাশ লোন (৫,০০০)',total:5000,paid:0}
+    ];
+    appData.transactions = [
+        {id:1,type:'income',category:'অন্যান্য আয়',amount:31000,date:'2026-06-11',note:'আগামীকালের প্রাপ্তি'},
+        {id:2,type:'income',category:'টিউশনি',amount:4000,date:'2026-07-08',note:'প্রথম বেতন'},
+        {id:3,type:'income',category:'বৃত্তি',amount:6000,date:'2026-07-28',note:'বৃত্তি'}
+    ];
+    appData.ielts = { modules: { Reading:0, Writing:0, Listening:0, Speaking:0 }, mocks: [] };
+    appData.habits = []; appData.journal = {};
+}
+
+// ==================== ইউটিলিটি ====================
+function getToday() { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+const bnDays=['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
+const bnMonths=['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+function updateBanner(){ const n=new Date(); document.getElementById('dayName').textContent=bnDays[n.getDay()]; document.getElementById('dateFull').textContent=`${n.getDate()} ${bnMonths[n.getMonth()]} ${n.getFullYear()}`; document.getElementById('timeLive').textContent=`🕒 ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`; }
+setInterval(updateBanner,10000); updateBanner();
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.style.display='block'; clearTimeout(t._t); t._t=setTimeout(()=>t.style.display='none',2000); }
+function fmtDate(d){ return new Date(d).toLocaleDateString('bn-BD',{year:'numeric',month:'short',day:'numeric'}); }
+const incCats=['বাসা ভাতা','টিউশনি','বৃত্তি','অন্যান্য আয়'], expCats=['খাবার','সিগারেট','যাতায়াত/অন্যান্য','ঋণ পরিশোধ'];
+
+// ==================== রিফ্রেশ ====================
+function refreshAll() {
+    refreshDashboard();
+    if (!document.getElementById('hisab-calendar').classList.contains('hidden')) renderCalendar();
+    if (!document.getElementById('hisab-debts').classList.contains('hidden')) renderDebts();
+    if (!document.getElementById('hisab-meals').classList.contains('hidden')) renderMeals();
+    if (!document.getElementById('sec-routine').classList.contains('hidden')) { renderChecklist(); updateSessions(); updateExams(); renderHabits(); renderJournal(); }
+    if (!document.getElementById('sec-ielts').classList.contains('hidden')) renderIELTS();
+    if (!document.getElementById('sec-report').classList.contains('hidden')) renderReport();
+}
+
+// ==================== মেইন ট্যাব সুইচ ====================
+function switchMainTab(tab) {
+    ['sec-hisab','sec-routine','sec-ielts','sec-report','sec-settings'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    document.getElementById('sec-'+tab).classList.remove('hidden');
+    document.getElementById('bottomNav').style.display = (tab==='hisab')?'flex':'none';
+    document.querySelectorAll('.main-tabs button[data-tab]').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.main-tabs button[data-tab="${tab}"]`).classList.add('active');
+    refreshAll();
+}
+document.querySelectorAll('.main-tabs button[data-tab]').forEach(btn => {
+    btn.addEventListener('click', function() { switchMainTab(this.dataset.tab); });
+});
+
+// ==================== হিসাব সাব-ট্যাব ====================
+function switchHisabTab(tab) {
+    document.querySelectorAll('.hisab-page').forEach(p => p.classList.add('hidden'));
+    document.getElementById('hisab-'+tab).classList.remove('hidden');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelector(`.nav-item[data-hisab="${tab}"]`).classList.add('active');
+    refreshAll();
+}
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() { switchHisabTab(this.dataset.hisab); });
+});
+
+// ==================== ড্যাশবোর্ড ====================
+function refreshDashboard() {
+    const today = getToday(), past = appData.transactions.filter(t => t.date <= today);
+    let inc=0, exp=0; past.forEach(t => t.type==='income'? inc+=t.amount : exp+=t.amount);
+    const bal = inc-exp, target=30000, prog = Math.min(100, (bal/target*100)).toFixed(1);
+    document.getElementById('summaryCards').innerHTML = `
+        <div style="text-align:center;"><small>💰 আয়</small><br><b>${inc}৳</b></div>
+        <div style="text-align:center;"><small>💸 ব্যয়</small><br><b>${exp}৳</b></div>
+        <div style="text-align:center;"><small>🏦 ব্যালেন্স</small><br><b>${bal}৳</b></div>
+        <div style="text-align:center;"><small>🎯 বাকি</small><br><b>${Math.max(0,target-bal)}৳</b></div>`;
+    document.getElementById('ieltsProgress').style.width = prog+'%';
+    document.getElementById('ieltsText').textContent = `সঞ্চয়: ${bal} টাকা (${prog}%)`;
+    const fut = appData.transactions.filter(t => t.date > today).sort((a,b)=>a.date.localeCompare(b.date));
+    document.getElementById('futureTx').innerHTML = fut.length ? fut.map(t=>`<div>${fmtDate(t.date)} ${t.category} <b style="color:${t.type==='income'?'green':'red'}">${t.type==='income'?'+':'-'}${t.amount}৳</b></div>`).join('') : 'নেই';
+    const rec = [...past].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+    document.getElementById('recentTx').innerHTML = rec.length ? rec.map(t=>`<div>${fmtDate(t.date)} ${t.category} <b style="color:${t.type==='income'?'green':'red'}">${t.type==='income'?'+':'-'}${t.amount}৳</b></div>`).join('') : 'নেই';
+}
+
+// ==================== ক্যালেন্ডার ====================
+function renderCalendar() {
+    const base = new Date(getToday()); base.setMonth(base.getMonth() + (appData.calOffset||0));
+    document.getElementById('calMonthYear').textContent = base.toLocaleDateString('bn-BD',{year:'numeric',month:'long'});
+    const y=base.getFullYear(), m=base.getMonth(), fd=new Date(y,m,1).getDay(), days=new Date(y,m+1,0).getDate(), today=getToday();
+    let g = ''; ['রবি','সোম','মঙ্গল','বুধ','বৃহঃ','শুক্র','শনি'].forEach(d=>g+=`<div>${d}</div>`);
+    for(let i=0;i<fd;i++) g+='<div></div>';
+    for(let d=1;d<=days;d++) {
+        const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        g += `<div class="calendar-day ${ds===appData.selectedDate?'selected':''} ${ds===today?'today':''}" onclick="selectDate('${ds}')">${d}</div>`;
+    }
+    document.getElementById('calGrid').innerHTML = g;
+    document.getElementById('selDateDisplay').textContent = fmtDate(appData.selectedDate);
+    showDayDetail();
+}
+function selectDate(d) { appData.selectedDate=d; save(); renderCalendar(); }
+function changeMonth(v) { appData.calOffset = (appData.calOffset||0) + v; save(); renderCalendar(); }
+function showDayDetail() {
+    const tx = appData.transactions.filter(t=>t.date===appData.selectedDate), ml = appData.meals.filter(m=>m.date===appData.selectedDate);
+    document.getElementById('dayDetail').innerHTML =
+        '<b>লেনদেন</b><br>' + (tx.length?tx.map(t=>`${t.category} ${t.amount}৳`).join('<br>'):'নেই') +
+        '<br><b>খাবার</b><br>' + (ml.length?ml.map(m=>`${m.type}: ${m.item} ${m.cost}৳`).join('<br>'):'নেই');
+}
+function addForDate() { document.getElementById('transDate').value = appData.selectedDate; switchHisabTab('add'); }
+
+// ==================== লেনদেন ====================
+function updateCat() {
+    document.getElementById('transDate').value = appData.selectedDate || getToday();
+    const cats = document.getElementById('transType').value === 'income' ? incCats : expCats;
+    const sel = document.getElementById('transCat'); sel.innerHTML = '';
+    cats.forEach(c => { const o = document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
+}
+document.getElementById('transType').addEventListener('change', updateCat);
+function addTx() {
+    const type = document.getElementById('transType').value, cat = document.getElementById('transCat').value,
+          amt = +document.getElementById('transAmt').value, date = document.getElementById('transDate').value,
+          note = document.getElementById('transNote').value;
+    if (!amt || amt<=0 || !date) return toast('সঠিক তথ্য দিন');
+    appData.transactions.push({id:Date.now(), type, category:cat, amount:amt, date, note});
+    save(); toast('সংরক্ষিত'); document.getElementById('transAmt').value=''; document.getElementById('transNote').value='';
+    refreshAll();
+}
+
+// ==================== ঋণ ====================
+function renderDebts() {
+    let h='', total=0;
+    appData.debts.forEach(d => {
+        const rem = d.total-d.paid; total += rem;
+        h += `<div><b>${d.name}</b> ${d.paid}/${d.total}৳ <div class="progress-bar"><div class="progress-fill" style="width:${d.total?(d.paid/d.total*100):0}%"></div></div> বাকি: ${rem}৳</div>`;
+    });
+    h += `<p><b>মোট বাকি: ${total}৳</b></p>`;
+    document.getElementById('debtList').innerHTML = h;
+    const sel = document.getElementById('debtSelect'); sel.innerHTML = '';
+    appData.debts.forEach(d => { const o = document.createElement('option'); o.value = d.id; o.textContent = `${d.name} (${d.total-d.paid}৳)`; sel.appendChild(o); });
+    document.getElementById('debtDate').value = getToday();
+}
+function payDebt() {
+    const id = document.getElementById('debtSelect').value, amt = +document.getElementById('debtAmt').value, date = document.getElementById('debtDate').value;
+    if (!amt || amt<=0 || !date) return toast('সঠিক তথ্য দিন');
+    const debt = appData.debts.find(d => d.id === id);
+    debt.paid = Math.min(debt.total, debt.paid + amt);
+    appData.transactions.push({id:Date.now(), type:'expense', category:'ঋণ পরিশোধ', amount:Math.min(amt, debt.total), date, note:`${debt.name} পরিশোধ`});
+    save(); toast('পরিশোধ রেকর্ড'); renderDebts(); refreshDashboard();
+    document.getElementById('debtAmt').value = '';
+}
+
+// ==================== খাবার ====================
+function renderMeals() {
+    const today = getToday(), meals = appData.meals.filter(m => m.date === today);
+    let h = '', total = 0;
+    meals.forEach(m => { h += `<div>${m.type}: ${m.item} ${m.cost}৳</div>`; total += m.cost; });
+    document.getElementById('mealToday').innerHTML = meals.length ? h + `<b>মোট: ${total}৳</b>` : 'আজ কোনো খাবার নেই';
+}
+function addMeal() {
+    const type = document.getElementById('mealType').value, item = document.getElementById('mealItem').value.trim(), cost = +document.getElementById('mealCost').value;
+    if (!item || !cost) return toast('বিবরণ দিন');
+    const today = getToday();
+    appData.meals.push({date:today, type, item, cost});
+    appData.transactions.push({id:Date.now(), type:'expense', category:'খাবার', amount:cost, date:today, note:`${type}: ${item}`});
+    save(); renderMeals(); toast('খাবার যোগ'); refreshDashboard();
+}
+
+// ==================== রুটিন ====================
+function renderChecklist() {
+    const keys = ['fajr','zuhr','asr','maghrib','isha','breakfast','lunch','dinner','walkMorning','walkEvening'];
+    const labels = ['ফজর','যোহর','আসর','মাগরিব','এশা','সকালের নাস্তা','দুপুরের খাবার','রাতের খাবার','সকালের হাঁটা','বিকালের হাঁটা'];
+    const saved = JSON.parse(localStorage.getItem('checklist_'+getToday())||'{}');
+    document.getElementById('checklistContainer').innerHTML = keys.map((k,i) => `<label><input type="checkbox" id="${k}" ${saved[k]?'checked':''} onchange="saveChecklist()"> ${labels[i]}</label><br>`).join('');
+}
+function saveChecklist() {
+    const keys = ['fajr','zuhr','asr','maghrib','isha','breakfast','lunch','dinner','walkMorning','walkEvening'];
+    const data = {}; keys.forEach(k => { const cb = document.getElementById(k); if (cb) data[k] = cb.checked; });
+    localStorage.setItem('checklist_'+getToday(), JSON.stringify(data));
+}
+function getSessions() { return JSON.parse(localStorage.getItem('study_'+getToday())||'[]'); }
+function logSession(min) {
+    const course = document.getElementById('courseName').value.trim() || 'সাধারণ';
+    const s = getSessions(); s.push({course, minutes:min||0, time:new Date().toLocaleTimeString('bn-BD')});
+    localStorage.setItem('study_'+getToday(), JSON.stringify(s));
+    updateSessions();
+}
+function logSessionManual() { logSession(0); }
+function updateSessions() {
+    const s = getSessions();
+    document.getElementById('sessionList').innerHTML = s.length ? s.map(s=>`<div>${s.course} - ${s.minutes}মি. ${s.time}</div>`).join('') : 'নেই';
+}
+function getExams() { return JSON.parse(localStorage.getItem('exam_routine')||'[]'); }
+function addExam() {
+    const sub = document.getElementById('examSubject').value.trim(), date = document.getElementById('examDate').value, time = document.getElementById('examTime').value;
+    if (!sub || !date) return alert('বিষয় ও তারিখ দিন');
+    const exams = getExams(); exams.push({subject:sub, date, time});
+    localStorage.setItem('exam_routine', JSON.stringify(exams));
+    document.getElementById('examSubject').value=''; document.getElementById('examDate').value=''; updateExams();
+}
+function deleteExam(i) { const e=getExams(); e.splice(i,1); localStorage.setItem('exam_routine',JSON.stringify(e)); updateExams(); }
+function updateExams() {
+    const exams = getExams();
+    document.getElementById('examList').innerHTML = exams.length ? exams.map((ex,i) => {
+        const diff = Math.ceil((new Date(ex.date)-new Date().setHours(0,0,0,0))/86400000);
+        return `<div>📘 ${ex.subject} ${ex.date} <b>${diff<0?'শেষ':diff===0?'আজ!':diff+' দিন বাকি'}</b> <button onclick="deleteExam(${i})">🗑️</button></div>`;
+    }).join('') : 'কোনো পরীক্ষা নেই';
+}
+function renderHabits() {
+    const habits = appData.habits || [];
+    document.getElementById('habitList').innerHTML = habits.length ? habits.map((h,i) => {
+        const done = h.dates?.includes(getToday());
+        return `<div>${h.name} ${done?'✅':'⬜'} streak:${h.streak||0} <button onclick="toggleHabit(${i})">${done?'আনডু':'করেছি'}</button></div>`;
+    }).join('') : 'কোনো অভ্যাস নেই';
+}
+function addHabit() {
+    const name = document.getElementById('newHabit').value.trim();
+    if (!name) return;
+    if (!appData.habits) appData.habits = [];
+    appData.habits.push({name, dates:[], streak:0});
+    save(); document.getElementById('newHabit').value=''; renderHabits();
+}
+function toggleHabit(i) {
+    const habit = appData.habits[i];
+    const today = getToday();
+    if (!habit.dates) habit.dates = [];
+    const idx = habit.dates.indexOf(today);
+    if (idx > -1) {
+        habit.dates.splice(idx, 1);
+        let streak = 0, d = new Date();
+        while (habit.dates.includes(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`)) { streak++; d.setDate(d.getDate()-1); }
+        habit.streak = streak;
+    } else {
+        habit.dates.push(today);
+        habit.streak = (habit.streak||0) + 1;
+    }
+    save(); renderHabits();
+}
+function renderJournal() {
+    const entry = appData.journal?.[getToday()] || '';
+    document.getElementById('journalEntry').value = entry;
+}
+function saveJournal() {
+    const text = document.getElementById('journalEntry').value.trim();
+    if (!appData.journal) appData.journal = {};
+    appData.journal[getToday()] = text;
+    save(); toast('নোট সংরক্ষিত');
+}
+
+// ==================== IELTS ====================
+function renderIELTS() {
+    const ielts = appData.ielts;
+    let h = '';
+    for (const [mod, prog] of Object.entries(ielts.modules)) {
+        h += `<div><b>${mod}</b> <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100,prog)}%"></div></div>${prog}% <input type="range" min="0" max="100" value="${prog}" onchange="updateIELTS('${mod}',this.value)"></div>`;
+    }
+    document.getElementById('ieltsModules').innerHTML = h;
+    document.getElementById('mockHistory').innerHTML = ielts.mocks.length ? ielts.mocks.map(m=>`<div>${m.date} ${m.module}: ${m.score}</div>`).join('') : 'কোনো মক টেস্ট নেই';
+}
+function updateIELTS(mod, val) {
+    appData.ielts.modules[mod] = parseInt(val);
+    save(); renderIELTS();
+}
+function addMockScore() {
+    const date = document.getElementById('mockDate').value, score = parseFloat(document.getElementById('mockScore').value), module = document.getElementById('mockModule').value;
+    if (!date || isNaN(score)) return toast('তারিখ ও স্কোর দিন');
+    appData.ielts.mocks.push({date, module, score});
+    save(); toast('মক টেস্ট যোগ'); renderIELTS();
+}
+
+// ==================== রিপোর্ট ====================
+function renderReport() {
+    const month = getToday().slice(0,7);
+    const txns = appData.transactions.filter(t => t.date.startsWith(month));
+    let inc=0, exp=0; const cats = {};
+    txns.forEach(t => { if(t.type==='income') inc+=t.amount; else { exp+=t.amount; cats[t.category]=(cats[t.category]||0)+t.amount; } });
+    document.getElementById('reportSummary').innerHTML = `<p>আয়: ${inc}৳ | ব্যয়: ${exp}৳ | সঞ্চয়: ${inc-exp}৳</p>`;
+    const ctx = document.getElementById('reportChart').getContext('2d');
+    if (window._rc) window._rc.destroy();
+    window._rc = new Chart(ctx, { type:'doughnut', data:{ labels:Object.keys(cats), datasets:[{ data:Object.values(cats) }] } });
+}
+
+// ==================== অ্যালার্ম ====================
+let timerInt, timeLeft, timerRun, audioCtx, alarmsOn, alarmInt;
+function startPomodoro(m) {
+    if(timerRun) stopTimer();
+    timeLeft = m*60; document.getElementById('timerDisplay').textContent = fmtTime(timeLeft); timerRun = true;
+    timerInt = setInterval(() => {
+        if(timeLeft <= 0) { clearInterval(timerInt); timerRun = false; document.getElementById('timerDisplay').textContent='00:00';
+            if(m===25) { logSession(25); playBeep(); showOverlay('⏰ শেষ','বিরতি নিন'); }
+            else { logSession(5); playBeep(); showOverlay('☕ বিরতি শেষ','পড়তে বসুন'); }
+            return; }
+        timeLeft--; document.getElementById('timerDisplay').textContent = fmtTime(timeLeft);
+    }, 1000);
+}
+function stopTimer() { if(timerInt) clearInterval(timerInt); timerRun=false; timeLeft=0; document.getElementById('timerDisplay').textContent='25:00'; }
+function fmtTime(s) { return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+function enableAlarms() {
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume().then(()=>{ alarmsOn=true; document.getElementById('enableAlarmBtn').textContent='✅ সক্রিয়'; startAlarmCheck(); });
+    else { alarmsOn=true; document.getElementById('enableAlarmBtn').textContent='✅ সক্রিয়'; startAlarmCheck(); }
+}
+function playBeep() {
+    if(!audioCtx||audioCtx.state!=='running') return;
+    if(navigator.vibrate) navigator.vibrate([500,300,500]);
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='square'; o.frequency.value=800; g.gain.value=0.3;
+    o.connect(g); g.connect(audioCtx.destination); o.start(); setTimeout(()=>o.stop(),2000);
+}
+function showOverlay(t,m) { document.getElementById('alarmTitle').textContent=t; document.getElementById('alarmMessage').textContent=m; document.getElementById('alarmOverlay').classList.add('active'); }
+function dismissAlarm() { document.getElementById('alarmOverlay').classList.remove('active'); }
+const ptm = {0:{fajr:[5,15],zuhr:[12,5],asr:[15,45],maghrib:[17,30],isha:[18,50]},1:{fajr:[5,5],zuhr:[12,10],asr:[16,5],maghrib:[17,45],isha:[19,5]},2:{fajr:[4,40],zuhr:[12,5],asr:[16,25],maghrib:[18,0],isha:[19,15]},3:{fajr:[4,10],zuhr:[11,58],asr:[16,30],maghrib:[18,12],isha:[19,30]},4:{fajr:[3,45],zuhr:[11,55],asr:[16,30],maghrib:[18,25],isha:[19,45]},5:{fajr:[3,45],zuhr:[12,0],asr:[16,35],maghrib:[18,40],isha:[20,0]},6:{fajr:[3,55],zuhr:[12,5],asr:[16,35],maghrib:[18,45],isha:[20,5]},7:{fajr:[4,10],zuhr:[12,5],asr:[16,30],maghrib:[18,30],isha:[19,50]},8:{fajr:[4,25],zuhr:[11,58],asr:[16,15],maghrib:[18,0],isha:[19,20]},9:{fajr:[4,40],zuhr:[11,50],asr:[15,50],maghrib:[17,30],isha:[18,50]},10:{fajr:[4,55],zuhr:[11,50],asr:[15,30],maghrib:[17,10],isha:[18,30]},11:{fajr:[5,10],zuhr:[11,55],asr:[15,25],maghrib:[17,10],isha:[18,30]}};
+function startAlarmCheck() { if(alarmInt) clearInterval(alarmInt); alarmInt=setInterval(checkAlarms,10000); checkAlarms(); }
+function checkAlarms() {
+    if(!alarmsOn) return;
+    const n=new Date(), h=n.getHours(), m=n.getMinutes(), key='alarm_'+getToday(), fired=JSON.parse(localStorage.getItem(key)||'[]');
+    const p=ptm[n.getMonth()];
+    const items = [
+        {name:'ফজর',h:p.fajr[0],m:p.fajr[1],id:'pf'},{name:'যোহর',h:p.zuhr[0],m:p.zuhr[1],id:'pz'},{name:'আসর',h:p.asr[0],m:p.asr[1],id:'pa'},
+        {name:'মাগরিব',h:p.maghrib[0],m:p.maghrib[1],id:'pm'},{name:'এশা',h:p.isha[0],m:p.isha[1],id:'pi'},
+        {name:'নাস্তা',h:8,m:30,id:'nb'},{name:'দুপুর',h:13,m:30,id:'nl'},{name:'রাত',h:20,m:30,id:'nd'},
+        {name:'হাঁটা সকাল',h:7,m:0,id:'wm'},{name:'হাঁটা বিকাল',h:17,m:0,id:'we'}
+    ];
+    items.forEach(i => { if(h===i.h&&m===i.m&&!fired.includes(i.id)) { playBeep(); showOverlay('⏰ '+i.name,i.name+' এর সময় হয়েছে'); fired.push(i.id); } });
+    localStorage.setItem(key, JSON.stringify(fired));
+}
+
+// ==================== থিম ও সেটিংস ====================
+function changeTheme() {
+    const t = document.getElementById('themeSelect').value;
+    document.body.classList.remove('theme-ocean','theme-forest','theme-gold');
+    if(t!=='default') document.body.classList.add('theme-'+t);
+    localStorage.setItem('appTheme', t);
+}
+function toggleDark() { document.body.classList.toggle('dark'); localStorage.setItem('dark',document.body.classList.contains('dark')?'1':'0'); }
+function exportData() {
+    const b = new Blob([JSON.stringify(appData)],{type:'application/json'});
+    const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download='hisab_backup.json'; a.click();
+}
+function importData(e) {
+    const f = e.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = ev => { try { appData = JSON.parse(ev.target.result); ensureData(); save(); toast('ইম্পোর্ট সম্পন্ন'); refreshAll(); } catch(ex) { toast('ফাইল সঠিক নয়'); } };
+    r.readAsText(f);
+}
+
+// ==================== INIT ====================
+window.onload = function() {
+    if(localStorage.getItem('dark')==='1') document.body.classList.add('dark');
+    const th = localStorage.getItem('appTheme')||'default';
+    document.getElementById('themeSelect').value = th;
+    if(th!=='default') document.body.classList.add('theme-'+th);
+    updateCat();
+    updateBanner();
+    switchMainTab('hisab');
+};
+</script>
+</body>
+</html>
