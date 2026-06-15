@@ -1,575 +1,1222 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="bn" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, theme-color=#0f172a">
-    <title>হিসাব ও রুটিন</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%E0%A6%B9%E0%A6%BF%E0%A6%B8%E0%A6%BE%E0%A6%AC%22%2C%22short_name%22%3A%22%E0%A6%B9%E0%A6%BF%E0%A6%B8%E0%A6%BE%E0%A6%AC%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f172a%22%2C%22theme_color%22%3A%22%230f172a%22%7D">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>রিকভারি ড্যাশবোর্ড আলটিমেট - প্রো ভার্সন</title>
+    <meta name="theme-color" content="#10b981">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+
     <style>
         :root {
-            --bg: #f8fafc;
-            --surface: #ffffff;
-            --text: #0f172a;
-            --text-secondary: #475569;
-            --primary: #1e293b;
-            --accent: #f59e0b;
-            --accent-light: #fbbf24;
-            --danger: #ef4444;
-            --success: #10b981;
-            --border: #e2e8f0;
-            --shadow: 0 4px 12px rgba(0,0,0,0.06);
-            --radius: 16px;
+            --bg: #0f172a; --card: #1e293b; --accent: #10b981; --danger: #ef4444; 
+            --warning: #f59e0b; --text: #e2e8f0; --text2: #94a3b8; --border: #334155; 
+            --blue: #3b82f6; --purple: #8b5cf6; --orange: #f97316; --pink: #ec4899; 
+            --cyan: #06b6d4; --glass-bg: rgba(30, 41, 59, 0.6); --glass-blur: blur(12px); 
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); --input-bg: #0f172a;
         }
-        .dark {
-            --bg: #0f172a;
-            --surface: #1e293b;
-            --text: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --primary: #f59e0b;
-            --accent: #f59e0b;
-            --border: #334155;
+        [data-theme="light"] {
+            --bg: #f1f5f9; --card: #ffffff; --text: #1e293b; --text2: #64748b; 
+            --border: #cbd5e1; --glass-bg: rgba(255, 255, 255, 0.7); 
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.08); --input-bg: #f8fafc;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Segoe UI', 'Siyam Rupali', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 12px 12px 100px;
-            max-width: 500px;
-            margin: auto;
-            min-height: 100vh;
-        }
-        .banner {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            color: white;
-            border-radius: var(--radius);
-            padding: 14px 18px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .main-tabs { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
-        .main-tabs button {
-            flex: 1; min-width: 50px; padding: 10px 5px; border: 1px solid var(--border);
-            background: var(--surface); color: var(--text); border-radius: 10px;
-            font-weight: 700; font-size: 0.8rem; cursor: pointer;
-        }
-        .main-tabs button.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .card {
-            background: var(--surface);
-            border-radius: var(--radius);
-            padding: 14px;
-            margin-bottom: 12px;
-            border: 1px solid var(--border);
-        }
-        .btn {
-            background: var(--primary); color: white; border: none;
-            padding: 10px; border-radius: 12px; font-weight: 600; cursor: pointer;
-            width: 100%; margin-top: 6px;
-        }
-        .btn-accent { background: var(--accent); color: #0f172a; }
-        input, select, textarea {
-            width: 100%; padding: 10px; border: 1px solid var(--border);
-            border-radius: 10px; margin: 5px 0; background: var(--bg); color: var(--text);
-        }
-        .bottom-nav {
-            position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
-            width: calc(100% - 20px); max-width: 480px;
-            background: var(--surface); display: flex; justify-content: space-around;
-            padding: 10px 5px; border-radius: 20px; z-index: 20;
-            border: 1px solid var(--border);
-        }
-        .nav-item {
-            background: none; border: none; font-size: 0.6rem; display: flex;
-            flex-direction: column; align-items: center; color: var(--text-secondary);
-            cursor: pointer; padding: 4px 6px; border-radius: 10px;
-        }
-        .nav-item.active { background: var(--primary); color: white; }
-        .toast {
-            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-            background: #1e293b; color: white; padding: 8px 20px; border-radius: 20px;
-            z-index: 30; display: none;
-        }
-        .progress-bar { height: 8px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 5px 0; }
-        .progress-fill { height: 100%; background: var(--accent); border-radius: 10px; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; }
-        .calendar-day { padding: 8px; border-radius: 8px; background: var(--bg); cursor: pointer; }
-        .calendar-day.selected { background: var(--primary); color: white; }
-        .calendar-day.today { border: 2px solid var(--accent); }
-        .overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center;
-            z-index: 100; visibility: hidden;
-        }
-        .overlay.active { visibility: visible; }
-        .overlay-card { background: white; padding: 20px; border-radius: 16px; text-align: center; max-width: 300px; }
-        .hidden { display: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Hind Siliguri', sans-serif; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 90px; transition: 0.3s; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+        
+        .header { background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 2px solid var(--accent); }
+        [data-theme="light"] .header { background: linear-gradient(135deg, #e2e8f0, #f1f5f9); }
+        .header h1 { font-size: 1.5em; font-weight: 800; background: linear-gradient(135deg, #10b981, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .theme-toggle-btn { background: var(--glass-bg); border: 2px solid var(--border); border-radius: 50%; width: 42px; height: 42px; cursor: pointer; color: var(--text); transition: 0.3s; }
+        
+        .main-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 15px; padding: 15px; }
+        .card { background: var(--glass-bg); backdrop-filter: var(--glass-blur); border-radius: 15px; padding: 15px; border: 1px solid var(--border); box-shadow: var(--card-shadow); transition: 0.3s; }
+        .card:hover { border-color: var(--accent); }
+        .card h3 { margin-bottom: 12px; color: var(--accent); display: flex; align-items: center; gap: 8px; font-size: 1.1em;}
+        
+        .hero-section { display: flex; flex-wrap: wrap; gap: 15px; padding: 15px; }
+        .hero-card { flex: 1; min-width: 150px; background: var(--glass-bg); padding: 20px; border-radius: 15px; text-align: center; border: 1px solid var(--border); }
+        .donut-chart { width: 70px; height: 70px; border-radius: 50%; background: conic-gradient(var(--accent) 0deg, #334155 0deg); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-weight: bold; }
+        
+        .input-group { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        .input-group input, .input-group select, textarea { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text); outline: none; }
+        .input-group input:focus, .input-group select:focus, textarea:focus { border-color: var(--accent); }
+        
+        .btn { padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; white-space: nowrap; }
+        .btn:hover { transform: scale(1.02); opacity: 0.9; }
+        .btn-green { background: var(--accent); color: #000; }
+        .btn-red { background: var(--danger); }
+        .btn-blue { background: var(--blue); }
+        .btn-orange { background: var(--orange); }
+        .btn-purple { background: var(--purple); }
+        .btn-cyan { background: var(--cyan); color: #000; }
+        .btn-pink { background: var(--pink); }
+        
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; display: inline-block; margin: 2px; }
+        .badge-success { background: var(--accent); color: #000; }
+        .badge-warning { background: var(--warning); color: #000; }
+        
+        .progress-bar { height: 10px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 8px 0; }
+        .progress-fill { height: 100%; background: var(--accent); text-align: center; font-size: 0.7em; color: #000; font-weight: bold; line-height: 10px; transition: width 0.3s; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); border-top: 1px solid var(--accent); display: flex; overflow-x: auto; padding: 8px 5px; z-index: 100; gap: 5px; scrollbar-width: none; }
+        .bottom-nav::-webkit-scrollbar { display: none; }
+        .bottom-nav button { background: none; border: none; color: var(--text2); display: flex; flex-direction: column; align-items: center; font-size: 0.75em; cursor: pointer; padding: 5px 10px; border-radius: 10px; min-width: 65px; flex-shrink: 0;}
+        .bottom-nav button.active { color: var(--accent); background: rgba(16, 185, 129, 0.1); }
+        .bottom-nav button i { font-size: 1.4em; margin-bottom: 4px; }
+        
+        .tab-content { display: none; animation: fadeUp 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .toast { position: fixed; top: 20px; right: 20px; background: var(--accent); color: #000; padding: 12px 20px; border-radius: 8px; font-weight: bold; z-index: 1000; animation: fadeUp 0.3s ease; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 500; justify-content: center; align-items: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--card); padding: 20px; border-radius: 15px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--accent); }
+        
+        .voice-btn { background: var(--purple); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; }
+        .voice-btn.listening { background: var(--danger); animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); } 50% { box-shadow: 0 0 0 10px rgba(0,0,0,0); } }
+        
+        .stopwatch { font-size: 2.5em; text-align: center; color: var(--accent); font-weight: bold; font-variant-numeric: tabular-nums; margin: 10px 0; }
+        .mood-grid { display: flex; gap: 10px; font-size: 2em; cursor: pointer; justify-content: center; flex-wrap: wrap;}
+        .mood-grid span { transition: transform 0.2s; }
+        .mood-grid span:hover { transform: scale(1.2); }
+
+        .quote-box { background: linear-gradient(45deg, var(--blue), var(--purple)); padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 15px; position: relative;}
+        .quote-text { font-size: 1.2em; font-style: italic; color: #fff; font-weight: 500;}
+        .level-badge { background: gold; color: #000; padding: 5px 10px; border-radius: 20px; font-weight: bold; display: inline-block; }
+        .chat-bubble { background: var(--glass-bg); padding: 10px 15px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid var(--blue); }
+        .chat-bot { border-left-color: var(--accent); text-align: left; }
+        .breathing-circle { width: 100px; height: 100px; background: var(--cyan); border-radius: 50%; margin: 20px auto; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold; }
+        .breathing-anim { animation: breathe 11s infinite ease-in-out; }
+        @keyframes breathe { 0%{transform:scale(1);} 36%{transform:scale(1.5);} 100%{transform:scale(1);} }
+        .checklist-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 8px; }
+        .checklist-item input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); }
+
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 10px; }
+        .calendar-day { background: var(--input-bg); padding: 10px; text-align: center; border-radius: 5px; border: 1px solid var(--border); font-size: 1.2em; }
+        .calendar-day.today { border-color: var(--accent); background: rgba(16, 185, 129, 0.2); }
+        .bmi-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
+        .bmi-table th, .bmi-table td { border: 1px solid var(--border); padding: 8px; text-align: center; }
+        .habit-grid { display: grid; grid-template-columns: 2fr repeat(7, 1fr); gap: 2px; text-align: center; font-size: 0.8em; margin-top: 10px;}
+        .habit-grid div { background: var(--input-bg); padding: 5px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; }
+        .habit-grid .check-box { cursor: pointer; }
+        .habit-grid .check-box.done { background: var(--accent); color: #000; }
+        .coping-list li { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); list-style: none; display: flex; gap: 10px; align-items: center;}
     </style>
 </head>
 <body>
 
-<!-- ব্যানার -->
-<div class="banner">
-    <div><div style="font-size:1.3rem;font-weight:700;" id="dayName"></div><div id="dateFull" style="font-size:0.85rem;opacity:0.9;"></div></div>
-    <div id="timeLive" style="background:rgba(255,255,255,0.15);padding:6px 12px;border-radius:20px;"></div>
-</div>
-
-<!-- প্রধান ট্যাব -->
-<div class="main-tabs" id="mainTabBar">
-    <button class="active" data-tab="hisab">📊 হিসাব</button>
-    <button data-tab="routine">📋 রুটিন</button>
-    <button data-tab="ielts">🎯 IELTS</button>
-    <button data-tab="report">📈 রিপোর্ট</button>
-    <button data-tab="settings">⚙️ সেটিংস</button>
-    <button onclick="toggleDark()">🌓</button>
-</div>
-
-<!-- হিসাব সেকশন -->
-<div id="sec-hisab">
-    <div id="hisab-dashboard" class="hisab-page">
-        <div class="card"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="summaryCards"></div></div>
-        <div class="card"><h3>🎯 IELTS সঞ্চয়</h3><div class="progress-bar"><div id="ieltsProgress" class="progress-fill" style="width:0%;"></div></div><p id="ieltsText"></p></div>
-        <div class="card"><h3>📈 আগামী</h3><div id="futureTx"></div></div>
-        <div class="card"><h3>📋 সাম্প্রতিক</h3><div id="recentTx"></div></div>
+    <div class="header">
+        <h1><i class="fa-solid fa-shield-halved"></i> রিকভারি প্রো</h1>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <div class="level-badge" id="userLevelBadge">Level 1</div>
+            <button class="theme-toggle-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="themeIcon"></i></button>
+        </div>
     </div>
-    <div id="hisab-calendar" class="hisab-page hidden"><div class="card"><div style="display:flex;justify-content:space-between;"><button onclick="changeMonth(-1)">◀</button><h3 id="calMonthYear"></h3><button onclick="changeMonth(1)">▶</button></div><div class="calendar-grid" id="calGrid"></div><p><b id="selDateDisplay"></b></p><div id="dayDetail"></div><button class="btn" onclick="addForDate()">➕ যোগ</button></div></div>
-    <div id="hisab-debts" class="hisab-page hidden"><div class="card"><h3>💳 ঋণ</h3><div id="debtList"></div></div><div class="card"><h3>💸 পরিশোধ</h3><select id="debtSelect"></select><input type="number" id="debtAmt" placeholder="টাকা"><input type="date" id="debtDate"><button class="btn btn-accent" onclick="payDebt()">✅ পরিশোধ</button></div></div>
-    <div id="hisab-meals" class="hisab-page hidden"><div class="card"><h3>🍽️ আজকের খাবার</h3><div id="mealToday"></div><div style="display:flex;gap:4px;"><select id="mealType"><option>সকাল</option><option>দুপুর</option><option>রাত</option></select><input type="text" id="mealItem" placeholder="কী"><input type="number" id="mealCost" placeholder="টাকা" style="width:70px;"></div><button class="btn" onclick="addMeal()">➕ যোগ</button></div></div>
-    <div id="hisab-add" class="hisab-page hidden"><div class="card"><h3>➕ লেনদেন</h3><select id="transType"><option value="income">আয়</option><option value="expense">ব্যয়</option></select><select id="transCat"></select><input type="number" id="transAmt" placeholder="টাকা"><input type="date" id="transDate"><input type="text" id="transNote" placeholder="নোট"><button class="btn btn-accent" onclick="addTx()">💾 সংরক্ষণ</button></div></div>
-</div>
 
-<!-- রুটিন সেকশন -->
-<div id="sec-routine" class="hidden">
-    <div class="card"><button class="btn" id="enableAlarmBtn" onclick="enableAlarms()">🔔 অ্যালার্ম সক্রিয় করুন</button></div>
-    <div class="card"><h3>📅 চেকলিস্ট</h3><div id="checklistContainer"></div></div>
-    <div class="card"><h3>⏳ পোমোডোরো</h3><div style="font-size:40px;text-align:center;" id="timerDisplay">25:00</div><input type="text" id="courseName" placeholder="কোর্স"><div style="display:flex;gap:4px;"><button class="btn" onclick="startPomodoro(25)">📖 ২৫</button><button class="btn" onclick="startPomodoro(5)">☕ ৫</button><button class="btn" style="background:#d62828;" onclick="stopTimer()">⏹️</button></div><button class="btn" onclick="logSessionManual()">✅ সেশন যোগ</button><div id="sessionList"></div></div>
-    <div class="card"><h3>📝 পরীক্ষা</h3><input type="text" id="examSubject" placeholder="বিষয়"><input type="date" id="examDate"><input type="time" id="examTime"><button class="btn" onclick="addExam()">➕ যোগ</button><div id="examList"></div></div>
-    <div class="card"><h3>🧩 অভ্যাস</h3><input type="text" id="newHabit" placeholder="অভ্যাস"><button class="btn" onclick="addHabit()">➕ যোগ</button><div id="habitList"></div></div>
-    <div class="card"><h3>💡 আজকের নোট</h3><textarea id="journalEntry" rows="3"></textarea><button class="btn" onclick="saveJournal()">💾 সংরক্ষণ</button></div>
-</div>
+    <div style="padding: 15px; text-align: center; display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap;">
+        <label><i class="fa-solid fa-calendar-days"></i> তারিখ: </label>
+        <input type="date" id="currentDate" style="padding: 8px; border-radius: 8px; border: 1px solid var(--accent); background: var(--input-bg); color: var(--text);" onchange="renderAll()">
+        <span id="syncStatus" style="font-size: 0.8em; color: var(--text2);"><i class="fa-solid fa-cloud-arrow-down"></i> অফলাইন</span>
+    </div>
 
-<!-- IELTS সেকশন -->
-<div id="sec-ielts" class="hidden">
-    <div class="card"><h3>📊 IELTS মডিউল</h3><div id="ieltsModules"></div></div>
-    <div class="card"><h3>📝 মক টেস্ট</h3><input type="date" id="mockDate"><input type="number" id="mockScore" placeholder="স্কোর (0-9)" step="0.5"><select id="mockModule"><option>Reading</option><option>Writing</option><option>Listening</option><option>Speaking</option></select><button class="btn" onclick="addMockScore()">➕ যোগ</button><div id="mockHistory"></div></div>
-</div>
+    <div style="padding: 0 15px;">
+        <div class="quote-box">
+            <p class="quote-text" id="dailyQuote">"অন্ধকার যতই গভীর হোক, ভোর আসবেই।"</p>
+            <div style="margin-top: 10px; display:flex; justify-content:center; gap:10px;">
+                <button class="btn" style="background:rgba(255,255,255,0.2); padding:5px 10px;" onclick="changeQuote()"><i class="fa-solid fa-rotate-right"></i> পরিবর্তন</button>
+                <button class="btn" style="background:rgba(255,255,255,0.2); padding:5px 10px;" onclick="copyQuote()"><i class="fa-solid fa-copy"></i> কপি</button>
+            </div>
+        </div>
+    </div>
 
-<!-- রিপোর্ট সেকশন -->
-<div id="sec-report" class="hidden">
-    <div class="card"><h3>📊 মাসিক রিপোর্ট</h3><canvas id="reportChart" height="200"></canvas><div id="reportSummary"></div></div>
-</div>
+    <div class="tab-content active" id="tab-dashboard">
+        <div class="hero-section">
+            <div class="hero-card">
+                <div class="donut-chart" id="streakChart">0</div>
+                <small>জুয়া-মুক্ত দিন</small><br><strong id="streakText">0 দিন</strong>
+            </div>
+            <div class="hero-card">
+                <div class="donut-chart" id="debtChart">0%</div>
+                <small>ঋণ পরিশোধ</small><br><strong id="debtText">0 / 30,000</strong>
+            </div>
+            <div class="hero-card">
+                <div class="donut-chart" id="savingsChart">0%</div>
+                <small>সঞ্চয় লক্ষ্য</small><br><strong id="savingsText">0 / 11,500</strong>
+            </div>
+        </div>
 
-<!-- সেটিংস সেকশন -->
-<div id="sec-settings" class="hidden">
-    <div class="card"><h3>🎨 থিম</h3><select id="themeSelect" onchange="changeTheme()"><option value="default">ডিফল্ট</option><option value="ocean">সাগর নীল</option><option value="forest">বন সবুজ</option><option value="gold">সোনালি</option></select></div>
-    <div class="card"><h3>🔔 সাউন্ড</h3><select id="soundSelect"><option>ক্লাসিক</option><option>আযান</option><option>পাখি</option></select></div>
-    <div class="card"><h3>☁️ ডেটা</h3><button class="btn" onclick="exportData()">📤 এক্সপোর্ট</button><input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)"><button class="btn" onclick="document.getElementById('importFile').click()">📥 ইম্পোর্ট</button></div>
-</div>
+        <div class="main-grid">
+            <div class="card" style="text-align: center;">
+                <h3><i class="fa-solid fa-face-smile"></i> আজকের মুড</h3>
+                <div class="mood-grid">
+                    <span onclick="saveMood('😄')">😄</span><span onclick="saveMood('🙂')">🙂</span>
+                    <span onclick="saveMood('😐')">😐</span><span onclick="saveMood('😟')">😟</span>
+                    <span onclick="saveMood('😢')">😢</span>
+                </div>
+                <p class="mt-2">রেকর্ড: <strong id="todayMood">-</strong></p>
+            </div>
 
-<!-- বটম নেভ (হিসাব) -->
-<div class="bottom-nav" id="bottomNav">
-    <button class="nav-item active" data-hisab="dashboard">📊 ড্যাশ</button>
-    <button class="nav-item" data-hisab="calendar">📅 ক্যালেন্ডার</button>
-    <button class="nav-item" data-hisab="debts">💳 ঋণ</button>
-    <button class="nav-item" data-hisab="meals">🍛 খাবার</button>
-    <button class="nav-item" data-hisab="add">➕ যোগ</button>
-</div>
+            <div class="card">
+                <h3><i class="fa-solid fa-book"></i> জার্নাল</h3>
+                <div class="input-group"><textarea id="journalText" rows="3" placeholder="আজকের অনুভূতি লিখুন..."></textarea></div>
+                <div id="journalAIResult" style="margin-bottom: 10px; font-weight: bold; color: var(--accent);"></div>
+                <div class="input-group">
+                    <button class="btn btn-blue" onclick="saveJournal()"><i class="fa-solid fa-save"></i> সেভ করুন (XP)</button>
+                    <button class="voice-btn" id="voiceJournal" onclick="startVoice('journalText', 'voiceJournal')"><i class="fa-solid fa-microphone"></i></button>
+                </div>
+            </div>
 
-<div id="toast" class="toast"></div>
-<div id="alarmOverlay" class="overlay"><div class="overlay-card"><h2 id="alarmTitle"></h2><p id="alarmMessage"></p><button class="btn" onclick="dismissAlarm()">ঠিক আছে</button></div></div>
+            <div class="card" style="text-align: center; border-color: var(--danger);">
+                <h3 style="color: var(--danger); justify-content: center;"><i class="fa-solid fa-triangle-exclamation"></i> SOS ইমার্জেন্সি</h3>
+                <button class="btn btn-red" style="font-size: 1.2em; padding: 15px 30px;" onclick="openSOS()"><i class="fa-solid fa-hand"></i> থামো! জুয়া খেলার ইচ্ছা হচ্ছে</button>
+            </div>
+            
+            <div class="card" id="dailyChallengeCard" style="border-color: var(--purple);">
+                <h3 style="color: var(--purple);"><i class="fa-solid fa-medal"></i> আজকের ডেইলি চ্যালেঞ্জ</h3>
+                <div id="challengeContainer"></div>
+            </div>
+        </div>
+    </div>
 
-<script>
-// ==================== FIREBASE ====================
-const firebaseConfig = {
-    apiKey: "AIzaSyDKniQatcaQPCnB87Gz-6XeLaXcAQc28rc",
-    authDomain: "hisab-tracker-9d867.firebaseapp.com",
-    databaseURL: "https://hisab-tracker-9d867-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "hisab-tracker-9d867",
-    storageBucket: "hisab-tracker-9d867.firebasestorage.app",
-    messagingSenderId: "424669328740",
-    appId: "1:424669328740:web:67bc86e8a0cb03850bb671"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+    <div class="tab-content" id="tab-health">
+        <div class="main-grid">
+            <div class="card">
+                <h3><i class="fa-solid fa-list-check"></i> ডেইলি রুটিন ও হ্যাবিট</h3>
+                <div id="routineList">
+                    <div class="checklist-item"><input type="checkbox" id="rtMorn" onchange="updateRoutine()"> <label for="rtMorn">মর্নিং রুটিন (ফজর, ব্যায়াম)</label></div>
+                    <div class="checklist-item"><input type="checkbox" id="rtRead" onchange="updateRoutine()"> <label for="rtRead">৩০ মিনিট বই পড়া</label></div>
+                    <div class="checklist-item"><input type="checkbox" id="rtNight" onchange="updateRoutine()"> <label for="rtNight">ইভনিং রুটিন (জার্নাল, ঘুম)</label></div>
+                </div>
+            </div>
 
-// ==================== গ্লোবাল ডেটা ====================
-let appData = {
-    transactions: [], debts: [], meals: [], calOffset: 0,
-    selectedDate: new Date().toISOString().slice(0,10),
-    ielts: { modules: { Reading:0, Writing:0, Listening:0, Speaking:0 }, mocks: [] },
-    habits: [], journal: {}
-};
+            <div class="card">
+                <h3><i class="fa-solid fa-smoking"></i> ধূমপান</h3>
+                <div class="input-group"><input type="number" id="smokeCount" placeholder="শলাকা" value="1"><input type="number" id="smokePrice" placeholder="দাম" value="15"><button class="btn btn-orange" onclick="addSmoke()"><i class="fa-solid fa-plus"></i></button></div>
+                <p>খরচ: <strong id="todaySmokeCost">0</strong> ৳ (<strong id="todaySmokeCount">0</strong> টি)</p>
+            </div>
 
-function ensureData() {
-    if (!appData.ielts) appData.ielts = { modules: { Reading:0, Writing:0, Listening:0, Speaking:0 }, mocks: [] };
-    if (!appData.ielts.modules) appData.ielts.modules = { Reading:0, Writing:0, Listening:0, Speaking:0 };
-    if (!appData.ielts.mocks) appData.ielts.mocks = [];
-    if (!appData.habits) appData.habits = [];
-    if (!appData.journal) appData.journal = {};
-}
+            <div class="card">
+                <h3><i class="fa-solid fa-droplet"></i> পানি পান (রিমাইন্ডার সহ)</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 1.5em;">
+                    <button class="btn btn-red" onclick="updateWater(-1)"><i class="fa-solid fa-minus"></i></button>
+                    <span><strong id="waterCount">0</strong> / 8</span>
+                    <button class="btn btn-blue" onclick="updateWater(1)"><i class="fa-solid fa-plus"></i></button>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" id="waterProgress" style="width: 0%;">0%</div></div>
+            </div>
 
-// Firebase sync
-db.ref('appData').on('value', snap => {
-    if (snap.val()) { appData = snap.val(); ensureData(); localStorage.setItem('hb', JSON.stringify(appData)); }
-    else { const b = localStorage.getItem('hb'); if (b) appData = JSON.parse(b); else initDefaults(); save(); }
-    refreshAll();
-}, () => { const b = localStorage.getItem('hb'); if (b) appData = JSON.parse(b); refreshAll(); });
+            <div class="card">
+                <h3><i class="fa-solid fa-weight-scale"></i> BMI ক্যালকুলেটর</h3>
+                <div class="input-group"><input type="number" id="bmiW" placeholder="ওজন (kg)"><input type="number" id="bmiH" placeholder="উচ্চতা (cm)"><button class="btn btn-cyan" onclick="calcBMI()">হিসাব</button></div>
+                <p id="bmiResult">-</p>
+                <h4 style="margin-top:15px; font-size:0.9em; color:var(--text2);">হিস্ট্রি (শেষ ৫টি)</h4>
+                <table class="bmi-table" id="bmiTable">
+                    <thead><tr><th>তারিখ</th><th>ওজন</th><th>অবস্থা</th></tr></thead>
+                    <tbody id="bmiTbody"></tbody>
+                </table>
+            </div>
 
-function save() { db.ref('appData').set(appData).catch(()=>{}); localStorage.setItem('hb', JSON.stringify(appData)); }
+            <div class="card" style="grid-column: 1 / -1;">
+                <h3><i class="fa-solid fa-dumbbell"></i> হ্যাবিট স্ট্যাকিং (২১/৬৬ দিন)</h3>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <label style="font-size:0.9em;">গ্রিড ভিউ:</label>
+                    <select id="habitViewSelect" onchange="renderHabitStack()" style="padding:5px; border-radius:5px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
+                        <option value="7">গত ৭ দিন</option>
+                        <option value="21">গত ২১ দিন</option>
+                        <option value="66">গত ৬৬ দিন</option>
+                    </select>
+                </div>
 
-function initDefaults() {
-    appData.debts = [
-        {id:'d1',name:'ক্রেডিট কার্ড বিল',total:15000,paid:0},{id:'d2',name:'ফাহিম',total:2000,paid:0},{id:'d3',name:'রেদওয়ান',total:2000,paid:0},
-        {id:'d4',name:'রোহান',total:7000,paid:0},{id:'d5',name:'বিকাশ লোন (২,০০০)',total:2000,paid:0},{id:'d6',name:'বিকাশ লোন (৫,০০০)',total:5000,paid:0}
-    ];
-    appData.transactions = [
-        {id:1,type:'income',category:'অন্যান্য আয়',amount:31000,date:'2026-06-11',note:'আগামীকালের প্রাপ্তি'},
-        {id:2,type:'income',category:'টিউশনি',amount:4000,date:'2026-07-08',note:'প্রথম বেতন'},
-        {id:3,type:'income',category:'বৃত্তি',amount:6000,date:'2026-07-28',note:'বৃত্তি'}
-    ];
-    appData.ielts = { modules: { Reading:0, Writing:0, Listening:0, Speaking:0 }, mocks: [] };
-    appData.habits = []; appData.journal = {};
-}
+                <div class="input-group">
+                    <input type="text" id="newHabitName" placeholder="নতুন হ্যাবিট (যেমন: সকালে দৌড়ানো)">
+                    <select id="newHabitDays"><option value="21">২১ দিন</option><option value="66">৬৬ দিন</option></select>
+                    <button class="btn btn-green" onclick="addNewHabit()">যোগ</button>
+                </div>
+                <div id="habitStackContainer" style="overflow-x: auto; margin-top:10px;"></div>
+            </div>
+        </div>
+    </div>
 
-// ==================== ইউটিলিটি ====================
-function getToday() { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-const bnDays=['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
-const bnMonths=['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
-function updateBanner(){ const n=new Date(); document.getElementById('dayName').textContent=bnDays[n.getDay()]; document.getElementById('dateFull').textContent=`${n.getDate()} ${bnMonths[n.getMonth()]} ${n.getFullYear()}`; document.getElementById('timeLive').textContent=`🕒 ${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`; }
-setInterval(updateBanner,10000); updateBanner();
-function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.style.display='block'; clearTimeout(t._t); t._t=setTimeout(()=>t.style.display='none',2000); }
-function fmtDate(d){ return new Date(d).toLocaleDateString('bn-BD',{year:'numeric',month:'short',day:'numeric'}); }
-const incCats=['বাসা ভাতা','টিউশনি','বৃত্তি','অন্যান্য আয়'], expCats=['খাবার','সিগারেট','যাতায়াত/অন্যান্য','ঋণ পরিশোধ'];
+    <div class="tab-content" id="tab-finance">
+        <div class="main-grid">
+            <div class="card">
+                <h3><i class="fa-solid fa-sack-dollar"></i> আয়-ব্যয় ট্র্যাকার</h3>
+                <div class="input-group"><select id="expenseCat"></select><input type="number" id="expAmount" placeholder="খরচ ৳"><button class="btn btn-red" onclick="addExpense()"><i class="fa-solid fa-minus"></i></button></div>
+                <div class="input-group"><select id="incomeCat"></select><input type="number" id="incAmount" placeholder="আয় ৳"><button class="btn btn-green" onclick="addIncome()"><i class="fa-solid fa-plus"></i></button></div>
+                <p>আজকের খরচ: <strong id="todayExpText">0</strong> ৳ | আয়: <strong id="todayIncText">0</strong> ৳</p>
+            </div>
 
-// ==================== রিফ্রেশ ====================
-function refreshAll() {
-    refreshDashboard();
-    if (!document.getElementById('hisab-calendar').classList.contains('hidden')) renderCalendar();
-    if (!document.getElementById('hisab-debts').classList.contains('hidden')) renderDebts();
-    if (!document.getElementById('hisab-meals').classList.contains('hidden')) renderMeals();
-    if (!document.getElementById('sec-routine').classList.contains('hidden')) { renderChecklist(); updateSessions(); updateExams(); renderHabits(); renderJournal(); }
-    if (!document.getElementById('sec-ielts').classList.contains('hidden')) renderIELTS();
-    if (!document.getElementById('sec-report').classList.contains('hidden')) renderReport();
-}
+            <div class="card">
+                <h3><i class="fa-solid fa-piggy-bank"></i> সেভিংস ও ঋণ প্রোজেকশন</h3>
+                <div class="input-group"><input type="number" id="debtPayAmount" placeholder="ঋণ পরিশোধ"><button class="btn btn-green" onclick="payDebt()">পরিশোধ</button></div>
+                <div class="input-group"><input type="number" id="saveAmount" placeholder="সঞ্চয় জমা"><button class="btn btn-blue" onclick="addSavings()">জমা</button></div>
+                <hr style="border-color:var(--border); margin:10px 0;">
+                <p>জুয়া না খেলে রিয়েল-টাইম সেভ: <strong id="realTimeSave" style="color:var(--accent)">0</strong> ৳</p>
+                <small>(গড় ক্ষতি ৩০০ ৳/দিন × জুয়া-মুক্ত দিন)</small>
+            </div>
 
-// ==================== মেইন ট্যাব সুইচ ====================
-function switchMainTab(tab) {
-    ['sec-hisab','sec-routine','sec-ielts','sec-report','sec-settings'].forEach(id => document.getElementById(id).classList.add('hidden'));
-    document.getElementById('sec-'+tab).classList.remove('hidden');
-    document.getElementById('bottomNav').style.display = (tab==='hisab')?'flex':'none';
-    document.querySelectorAll('.main-tabs button[data-tab]').forEach(b => b.classList.remove('active'));
-    document.querySelector(`.main-tabs button[data-tab="${tab}"]`).classList.add('active');
-    refreshAll();
-}
-document.querySelectorAll('.main-tabs button[data-tab]').forEach(btn => {
-    btn.addEventListener('click', function() { switchMainTab(this.dataset.tab); });
-});
+            <div class="card">
+                <h3><i class="fa-solid fa-chart-pie"></i> মাসিক বাজেট</h3>
+                <div class="input-group"><input type="number" id="budgetLimit" placeholder="মাসিক বাজেট"><button class="btn btn-blue" onclick="saveBudget()">সেট</button></div>
+                <div class="progress-bar"><div class="progress-fill" id="budgetProgress" style="width: 0%;">0%</div></div>
+                <p>খরচ: <strong id="budgetSpent">0</strong> / <strong id="budgetText">0</strong></p>
+            </div>
 
-// ==================== হিসাব সাব-ট্যাব ====================
-function switchHisabTab(tab) {
-    document.querySelectorAll('.hisab-page').forEach(p => p.classList.add('hidden'));
-    document.getElementById('hisab-'+tab).classList.remove('hidden');
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.querySelector(`.nav-item[data-hisab="${tab}"]`).classList.add('active');
-    refreshAll();
-}
-document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', function() { switchHisabTab(this.dataset.hisab); });
-});
+            <div class="card" style="grid-column: 1 / -1; border-color: var(--cyan);">
+                <h3 style="color: var(--cyan);"><i class="fa-solid fa-calculator"></i> অ্যাডভান্সড ফাইন্যান্সিয়াল ক্যালকুলেটর</h3>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                    <div style="background:var(--input-bg); padding:10px; border-radius:10px;">
+                        <h4 style="margin-bottom:8px; font-size:0.95em;">বিনিয়োগ (SIP) ক্যালকুলেটর</h4>
+                        <div class="input-group"><input type="number" id="sipAmount" placeholder="মাসিক জমা ৳"></div>
+                        <div class="input-group"><input type="number" id="sipRate" placeholder="প্রত্যাশিত রিটার্ন %"><input type="number" id="sipYears" placeholder="সময়কাল (বছর)"></div>
+                        <button class="btn btn-blue" style="width:100%; margin-bottom:5px;" onclick="calculateSIP()">হিসাব করুন</button>
+                        <p style="font-size:0.85em; font-weight:bold; color:var(--accent);" id="sipResult">ফলাফল: -</p>
+                    </div>
+                    <div style="background:var(--input-bg); padding:10px; border-radius:10px;">
+                        <h4 style="margin-bottom:8px; font-size:0.95em;">ঋণমুক্ত হওয়ার সময়কাল</h4>
+                        <div class="input-group"><input type="number" id="dfDebt" placeholder="মোট ঋণ ৳"><input type="number" id="dfPay" placeholder="মাসিক পরিশোধ ৳"></div>
+                        <button class="btn btn-orange" style="width:100%; margin-bottom:5px;" onclick="calculateDebtFree()">হিসাব করুন</button>
+                        <p style="font-size:0.85em; font-weight:bold; color:var(--warning);" id="dfResult">ফলাফল: -</p>
+                    </div>
+                    <div style="background:var(--input-bg); padding:10px; border-radius:10px;">
+                        <h4 style="margin-bottom:8px; font-size:0.95em;">সঞ্চয়ের ভবিষ্যৎ মূল্য (FV)</h4>
+                        <div class="input-group">
+                            <input type="number" id="fvInitial" placeholder="এককালীন জমা ৳ (ঐচ্ছিক)">
+                            <input type="number" id="fvMonthly" placeholder="মাসিক জমা ৳">
+                        </div>
+                        <div class="input-group">
+                            <input type="number" id="fvRate" placeholder="বার্ষিক রিটার্ন %">
+                            <input type="number" id="fvYears" placeholder="সময়কাল (বছর)">
+                        </div>
+                        <button class="btn btn-green" style="width:100%; margin-bottom:5px;" onclick="calculateFV()">হিসাব করুন</button>
+                        <p style="font-size:0.85em; font-weight:bold; color:var(--accent);" id="fvResult">ফলাফল: -</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-// ==================== ড্যাশবোর্ড ====================
-function refreshDashboard() {
-    const today = getToday(), past = appData.transactions.filter(t => t.date <= today);
-    let inc=0, exp=0; past.forEach(t => t.type==='income'? inc+=t.amount : exp+=t.amount);
-    const bal = inc-exp, target=30000, prog = Math.min(100, (bal/target*100)).toFixed(1);
-    document.getElementById('summaryCards').innerHTML = `
-        <div style="text-align:center;"><small>💰 আয়</small><br><b>${inc}৳</b></div>
-        <div style="text-align:center;"><small>💸 ব্যয়</small><br><b>${exp}৳</b></div>
-        <div style="text-align:center;"><small>🏦 ব্যালেন্স</small><br><b>${bal}৳</b></div>
-        <div style="text-align:center;"><small>🎯 বাকি</small><br><b>${Math.max(0,target-bal)}৳</b></div>`;
-    document.getElementById('ieltsProgress').style.width = prog+'%';
-    document.getElementById('ieltsText').textContent = `সঞ্চয়: ${bal} টাকা (${prog}%)`;
-    const fut = appData.transactions.filter(t => t.date > today).sort((a,b)=>a.date.localeCompare(b.date));
-    document.getElementById('futureTx').innerHTML = fut.length ? fut.map(t=>`<div>${fmtDate(t.date)} ${t.category} <b style="color:${t.type==='income'?'green':'red'}">${t.type==='income'?'+':'-'}${t.amount}৳</b></div>`).join('') : 'নেই';
-    const rec = [...past].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
-    document.getElementById('recentTx').innerHTML = rec.length ? rec.map(t=>`<div>${fmtDate(t.date)} ${t.category} <b style="color:${t.type==='income'?'green':'red'}">${t.type==='income'?'+':'-'}${t.amount}৳</b></div>`).join('') : 'নেই';
-}
+    <div class="tab-content" id="tab-spiritual">
+        <div class="main-grid">
+            <div class="card">
+                <h3><i class="fa-solid fa-mosque"></i> নামাজ ট্র্যাকার ও রিমাইন্ডার</h3>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom:10px;">
+                    <label><input type="checkbox" id="pFajr" onchange="savePrayer()"> ফজর</label>
+                    <label><input type="checkbox" id="pDhuhr" onchange="savePrayer()"> যোহর</label>
+                    <label><input type="checkbox" id="pAsr" onchange="savePrayer()"> আসর</label>
+                    <label><input type="checkbox" id="pMaghrib" onchange="savePrayer()"> মাগরিব</label>
+                    <label><input type="checkbox" id="pIsha" onchange="savePrayer()"> এশা</label>
+                </div>
+                <label><input type="checkbox" id="pQaza" onchange="savePrayer()"> কাযা আদায়</label>
+            </div>
 
-// ==================== ক্যালেন্ডার ====================
-function renderCalendar() {
-    const base = new Date(getToday()); base.setMonth(base.getMonth() + (appData.calOffset||0));
-    document.getElementById('calMonthYear').textContent = base.toLocaleDateString('bn-BD',{year:'numeric',month:'long'});
-    const y=base.getFullYear(), m=base.getMonth(), fd=new Date(y,m,1).getDay(), days=new Date(y,m+1,0).getDate(), today=getToday();
-    let g = ''; ['রবি','সোম','মঙ্গল','বুধ','বৃহঃ','শুক্র','শনি'].forEach(d=>g+=`<div>${d}</div>`);
-    for(let i=0;i<fd;i++) g+='<div></div>';
-    for(let d=1;d<=days;d++) {
-        const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        g += `<div class="calendar-day ${ds===appData.selectedDate?'selected':''} ${ds===today?'today':''}" onclick="selectDate('${ds}')">${d}</div>`;
-    }
-    document.getElementById('calGrid').innerHTML = g;
-    document.getElementById('selDateDisplay').textContent = fmtDate(appData.selectedDate);
-    showDayDetail();
-}
-function selectDate(d) { appData.selectedDate=d; save(); renderCalendar(); }
-function changeMonth(v) { appData.calOffset = (appData.calOffset||0) + v; save(); renderCalendar(); }
-function showDayDetail() {
-    const tx = appData.transactions.filter(t=>t.date===appData.selectedDate), ml = appData.meals.filter(m=>m.date===appData.selectedDate);
-    document.getElementById('dayDetail').innerHTML =
-        '<b>লেনদেন</b><br>' + (tx.length?tx.map(t=>`${t.category} ${t.amount}৳`).join('<br>'):'নেই') +
-        '<br><b>খাবার</b><br>' + (ml.length?ml.map(m=>`${m.type}: ${m.item} ${m.cost}৳`).join('<br>'):'নেই');
-}
-function addForDate() { document.getElementById('transDate').value = appData.selectedDate; switchHisabTab('add'); }
+            <div class="card">
+                <h3><i class="fa-solid fa-clock"></i> স্থায়ী নামাজের সময়সূচি (রিমাইন্ডার)</h3>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; font-size:0.9em;" id="prayerScheduleInputs">
+                    </div>
+                <button class="btn btn-cyan mt-2" style="width:100%; margin-top:10px;" onclick="savePrayerTimes()">সময় সেভ করুন</button>
+            </div>
 
-// ==================== লেনদেন ====================
-function updateCat() {
-    document.getElementById('transDate').value = appData.selectedDate || getToday();
-    const cats = document.getElementById('transType').value === 'income' ? incCats : expCats;
-    const sel = document.getElementById('transCat'); sel.innerHTML = '';
-    cats.forEach(c => { const o = document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
-}
-document.getElementById('transType').addEventListener('change', updateCat);
-function addTx() {
-    const type = document.getElementById('transType').value, cat = document.getElementById('transCat').value,
-          amt = +document.getElementById('transAmt').value, date = document.getElementById('transDate').value,
-          note = document.getElementById('transNote').value;
-    if (!amt || amt<=0 || !date) return toast('সঠিক তথ্য দিন');
-    appData.transactions.push({id:Date.now(), type, category:cat, amount:amt, date, note});
-    save(); toast('সংরক্ষিত'); document.getElementById('transAmt').value=''; document.getElementById('transNote').value='';
-    refreshAll();
-}
+            <div class="card" style="background: linear-gradient(45deg, #0f172a, #164e63); border-color:#06b6d4;">
+                <h3 style="color:#06b6d4;"><i class="fa-solid fa-book-quran"></i> কুরআনের আয়াত ও দুয়া</h3>
+                <p id="randomDua" style="font-size:1.1em; font-style:italic; margin-bottom:10px;">"নিশ্চয়ই কষ্টের সাথেই রয়েছে স্বস্তি।" (সূরা ইনশিরাহ)</p>
+                <button class="btn btn-cyan" onclick="changeDua()" style="width:100%;">আরেকটি পড়ুন</button>
+            </div>
 
-// ==================== ঋণ ====================
-function renderDebts() {
-    let h='', total=0;
-    appData.debts.forEach(d => {
-        const rem = d.total-d.paid; total += rem;
-        h += `<div><b>${d.name}</b> ${d.paid}/${d.total}৳ <div class="progress-bar"><div class="progress-fill" style="width:${d.total?(d.paid/d.total*100):0}%"></div></div> বাকি: ${rem}৳</div>`;
-    });
-    h += `<p><b>মোট বাকি: ${total}৳</b></p>`;
-    document.getElementById('debtList').innerHTML = h;
-    const sel = document.getElementById('debtSelect'); sel.innerHTML = '';
-    appData.debts.forEach(d => { const o = document.createElement('option'); o.value = d.id; o.textContent = `${d.name} (${d.total-d.paid}৳)`; sel.appendChild(o); });
-    document.getElementById('debtDate').value = getToday();
-}
-function payDebt() {
-    const id = document.getElementById('debtSelect').value, amt = +document.getElementById('debtAmt').value, date = document.getElementById('debtDate').value;
-    if (!amt || amt<=0 || !date) return toast('সঠিক তথ্য দিন');
-    const debt = appData.debts.find(d => d.id === id);
-    debt.paid = Math.min(debt.total, debt.paid + amt);
-    appData.transactions.push({id:Date.now(), type:'expense', category:'ঋণ পরিশোধ', amount:Math.min(amt, debt.total), date, note:`${debt.name} পরিশোধ`});
-    save(); toast('পরিশোধ রেকর্ড'); renderDebts(); refreshDashboard();
-    document.getElementById('debtAmt').value = '';
-}
+            <div class="card">
+                <h3><i class="fa-solid fa-brain"></i> আর্জ (Urge) প্রতিরোধ</h3>
+                <div class="input-group"><input type="text" id="urgeReason" placeholder="ইচ্ছার কারণ"><button class="btn btn-orange" onclick="addUrge()">সহ্য করেছি!</button></div>
+                <p>আজকে প্রতিরোধ: <strong id="todayUrgeText">0</strong> বার</p>
+                <button class="btn btn-purple" style="width:100%; margin-top:10px;" onclick="openTriggerModal()"><i class="fa-solid fa-clipboard-list"></i> বিস্তারিত ট্রিগার লগ করুন</button>
+            </div>
+            
+            <div class="card" style="grid-column: 1 / -1;">
+                <h3><i class="fa-solid fa-chart-bar"></i> মাসিক নামাজ কমপ্লিশন রেট</h3>
+                <div class="progress-bar" style="height:20px; border-radius:20px;"><div class="progress-fill" id="prayerProgress" style="width: 0%; line-height:20px; font-size:1em;">0%</div></div>
+            </div>
+        </div>
+    </div>
 
-// ==================== খাবার ====================
-function renderMeals() {
-    const today = getToday(), meals = appData.meals.filter(m => m.date === today);
-    let h = '', total = 0;
-    meals.forEach(m => { h += `<div>${m.type}: ${m.item} ${m.cost}৳</div>`; total += m.cost; });
-    document.getElementById('mealToday').innerHTML = meals.length ? h + `<b>মোট: ${total}৳</b>` : 'আজ কোনো খাবার নেই';
-}
-function addMeal() {
-    const type = document.getElementById('mealType').value, item = document.getElementById('mealItem').value.trim(), cost = +document.getElementById('mealCost').value;
-    if (!item || !cost) return toast('বিবরণ দিন');
-    const today = getToday();
-    appData.meals.push({date:today, type, item, cost});
-    appData.transactions.push({id:Date.now(), type:'expense', category:'খাবার', amount:cost, date:today, note:`${type}: ${item}`});
-    save(); renderMeals(); toast('খাবার যোগ'); refreshDashboard();
-}
+    <div class="tab-content" id="tab-toolkit">
+        <div class="main-grid">
+            <div class="card" style="text-align:center;">
+                <h3><i class="fa-solid fa-wind"></i> 4-7-8 ব্রিদিং মেডিটেশন</h3>
+                <p class="text-sm">৪ সেকেন্ড শ্বাস নিন, ৭ সেকেন্ড ধরে রাখুন, ৮ সেকেন্ড ছাড়ুন</p>
+                <div class="breathing-circle" id="breathCircle">শ্বাস নিন</div>
+                <button class="btn btn-cyan" onclick="toggleBreathing()" id="breathBtn">শুরু করুন</button>
+            </div>
 
-// ==================== রুটিন ====================
-function renderChecklist() {
-    const keys = ['fajr','zuhr','asr','maghrib','isha','breakfast','lunch','dinner','walkMorning','walkEvening'];
-    const labels = ['ফজর','যোহর','আসর','মাগরিব','এশা','সকালের নাস্তা','দুপুরের খাবার','রাতের খাবার','সকালের হাঁটা','বিকালের হাঁটা'];
-    const saved = JSON.parse(localStorage.getItem('checklist_'+getToday())||'{}');
-    document.getElementById('checklistContainer').innerHTML = keys.map((k,i) => `<label><input type="checkbox" id="${k}" ${saved[k]?'checked':''} onchange="saveChecklist()"> ${labels[i]}</label><br>`).join('');
-}
-function saveChecklist() {
-    const keys = ['fajr','zuhr','asr','maghrib','isha','breakfast','lunch','dinner','walkMorning','walkEvening'];
-    const data = {}; keys.forEach(k => { const cb = document.getElementById(k); if (cb) data[k] = cb.checked; });
-    localStorage.setItem('checklist_'+getToday(), JSON.stringify(data));
-}
-function getSessions() { return JSON.parse(localStorage.getItem('study_'+getToday())||'[]'); }
-function logSession(min) {
-    const course = document.getElementById('courseName').value.trim() || 'সাধারণ';
-    const s = getSessions(); s.push({course, minutes:min||0, time:new Date().toLocaleTimeString('bn-BD')});
-    localStorage.setItem('study_'+getToday(), JSON.stringify(s));
-    updateSessions();
-}
-function logSessionManual() { logSession(0); }
-function updateSessions() {
-    const s = getSessions();
-    document.getElementById('sessionList').innerHTML = s.length ? s.map(s=>`<div>${s.course} - ${s.minutes}মি. ${s.time}</div>`).join('') : 'নেই';
-}
-function getExams() { return JSON.parse(localStorage.getItem('exam_routine')||'[]'); }
-function addExam() {
-    const sub = document.getElementById('examSubject').value.trim(), date = document.getElementById('examDate').value, time = document.getElementById('examTime').value;
-    if (!sub || !date) return alert('বিষয় ও তারিখ দিন');
-    const exams = getExams(); exams.push({subject:sub, date, time});
-    localStorage.setItem('exam_routine', JSON.stringify(exams));
-    document.getElementById('examSubject').value=''; document.getElementById('examDate').value=''; updateExams();
-}
-function deleteExam(i) { const e=getExams(); e.splice(i,1); localStorage.setItem('exam_routine',JSON.stringify(e)); updateExams(); }
-function updateExams() {
-    const exams = getExams();
-    document.getElementById('examList').innerHTML = exams.length ? exams.map((ex,i) => {
-        const diff = Math.ceil((new Date(ex.date)-new Date().setHours(0,0,0,0))/86400000);
-        return `<div>📘 ${ex.subject} ${ex.date} <b>${diff<0?'শেষ':diff===0?'আজ!':diff+' দিন বাকি'}</b> <button onclick="deleteExam(${i})">🗑️</button></div>`;
-    }).join('') : 'কোনো পরীক্ষা নেই';
-}
-function renderHabits() {
-    const habits = appData.habits || [];
-    document.getElementById('habitList').innerHTML = habits.length ? habits.map((h,i) => {
-        const done = h.dates?.includes(getToday());
-        return `<div>${h.name} ${done?'✅':'⬜'} streak:${h.streak||0} <button onclick="toggleHabit(${i})">${done?'আনডু':'করেছি'}</button></div>`;
-    }).join('') : 'কোনো অভ্যাস নেই';
-}
-function addHabit() {
-    const name = document.getElementById('newHabit').value.trim();
-    if (!name) return;
-    if (!appData.habits) appData.habits = [];
-    appData.habits.push({name, dates:[], streak:0});
-    save(); document.getElementById('newHabit').value=''; renderHabits();
-}
-function toggleHabit(i) {
-    const habit = appData.habits[i];
-    const today = getToday();
-    if (!habit.dates) habit.dates = [];
-    const idx = habit.dates.indexOf(today);
-    if (idx > -1) {
-        habit.dates.splice(idx, 1);
-        let streak = 0, d = new Date();
-        while (habit.dates.includes(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`)) { streak++; d.setDate(d.getDate()-1); }
-        habit.streak = streak;
-    } else {
-        habit.dates.push(today);
-        habit.streak = (habit.streak||0) + 1;
-    }
-    save(); renderHabits();
-}
-function renderJournal() {
-    const entry = appData.journal?.[getToday()] || '';
-    document.getElementById('journalEntry').value = entry;
-}
-function saveJournal() {
-    const text = document.getElementById('journalEntry').value.trim();
-    if (!appData.journal) appData.journal = {};
-    appData.journal[getToday()] = text;
-    save(); toast('নোট সংরক্ষিত');
-}
+            <div class="card">
+                <h3><i class="fa-solid fa-robot"></i> এআই রিকভারি অ্যাসিস্ট্যান্ট</h3>
+                <div id="chatBox" style="height:150px; overflow-y:auto; margin-bottom:10px; padding:10px; border:1px solid var(--border); border-radius:10px; background:var(--bg);">
+                    <div class="chat-bubble chat-bot">হ্যালো! আজ আপনার মন কেমন আছে? কোনো ট্রিগার ফিল করছেন?</div>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="chatInput" placeholder="আপনার কথা লিখুন...">
+                    <button class="btn btn-blue" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
 
-// ==================== IELTS ====================
-function renderIELTS() {
-    const ielts = appData.ielts;
-    let h = '';
-    for (const [mod, prog] of Object.entries(ielts.modules)) {
-        h += `<div><b>${mod}</b> <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100,prog)}%"></div></div>${prog}% <input type="range" min="0" max="100" value="${prog}" onchange="updateIELTS('${mod}',this.value)"></div>`;
-    }
-    document.getElementById('ieltsModules').innerHTML = h;
-    document.getElementById('mockHistory').innerHTML = ielts.mocks.length ? ielts.mocks.map(m=>`<div>${m.date} ${m.module}: ${m.score}</div>`).join('') : 'কোনো মক টেস্ট নেই';
-}
-function updateIELTS(mod, val) {
-    appData.ielts.modules[mod] = parseInt(val);
-    save(); renderIELTS();
-}
-function addMockScore() {
-    const date = document.getElementById('mockDate').value, score = parseFloat(document.getElementById('mockScore').value), module = document.getElementById('mockModule').value;
-    if (!date || isNaN(score)) return toast('তারিখ ও স্কোর দিন');
-    appData.ielts.mocks.push({date, module, score});
-    save(); toast('মক টেস্ট যোগ'); renderIELTS();
-}
+            <div class="card">
+                <h3><i class="fa-solid fa-shield"></i> রিল্যাপস প্রিভেনশন টুলকিট</h3>
+                <button class="btn btn-orange" style="width:100%; margin-bottom:10px;" onclick="alert('কোপিং স্কিল: ১. গরম পানি পান করুন। ২. ৫-৪-৩-২-১ মেথডে পরিবেশ পর্যবেক্ষণ করুন। ৩. ইমার্জেন্সি কন্টাক্টে কল দিন।')">কোপিং স্কিল গাইড (পুরাতন)</button>
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <button class="btn btn-green" style="flex:1;" onclick="document.getElementById('copingModal').classList.add('active')"><i class="fa-solid fa-book-medical"></i> কোপিং লাইব্রেরি</button>
+                    <button class="btn btn-red" style="flex:1;" onclick="document.getElementById('relapseModal').classList.add('active')"><i class="fa-solid fa-file-medical"></i> রিল্যাপস রিপোর্ট</button>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="emContact" placeholder="ইমার্জেন্সি কন্টাক্ট নম্বর">
+                    <button class="btn btn-green" onclick="saveContact()">সেভ</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fa-brands fa-youtube"></i> মোটিভেশনাল ভিডিও</h3>
+                <iframe width="100%" height="180" src="https://www.youtube.com/embed/jfKfPfyJRdk" title="Motivation" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius:10px;"></iframe>
+            </div>
+        </div>
+    </div>
 
-// ==================== রিপোর্ট ====================
-function renderReport() {
-    const month = getToday().slice(0,7);
-    const txns = appData.transactions.filter(t => t.date.startsWith(month));
-    let inc=0, exp=0; const cats = {};
-    txns.forEach(t => { if(t.type==='income') inc+=t.amount; else { exp+=t.amount; cats[t.category]=(cats[t.category]||0)+t.amount; } });
-    document.getElementById('reportSummary').innerHTML = `<p>আয়: ${inc}৳ | ব্যয়: ${exp}৳ | সঞ্চয়: ${inc-exp}৳</p>`;
-    const ctx = document.getElementById('reportChart').getContext('2d');
-    if (window._rc) window._rc.destroy();
-    window._rc = new Chart(ctx, { type:'doughnut', data:{ labels:Object.keys(cats), datasets:[{ data:Object.values(cats) }] } });
-}
+    <div class="tab-content" id="tab-goals">
+        <div class="main-grid">
+            <div class="card">
+                <h3><i class="fa-solid fa-bullseye"></i> শর্ট-টার্ম গোল (৩০ দিন)</h3>
+                <div class="input-group"><input type="text" id="sgInput" placeholder="নতুন গোল"><button class="btn btn-green" onclick="addGoal('short')">যোগ</button></div>
+                <ul id="sgList" style="list-style:none; margin-top:10px; padding:0;"></ul>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fa-solid fa-mountain"></i> লং-টার্ম গোল (১ বছর)</h3>
+                <div class="input-group"><input type="text" id="lgInput" placeholder="নতুন গোল"><button class="btn btn-blue" onclick="addGoal('long')">যোগ</button></div>
+                <ul id="lgList" style="list-style:none; margin-top:10px; padding:0;"></ul>
+            </div>
 
-// ==================== অ্যালার্ম ====================
-let timerInt, timeLeft, timerRun, audioCtx, alarmsOn, alarmInt;
-function startPomodoro(m) {
-    if(timerRun) stopTimer();
-    timeLeft = m*60; document.getElementById('timerDisplay').textContent = fmtTime(timeLeft); timerRun = true;
-    timerInt = setInterval(() => {
-        if(timeLeft <= 0) { clearInterval(timerInt); timerRun = false; document.getElementById('timerDisplay').textContent='00:00';
-            if(m===25) { logSession(25); playBeep(); showOverlay('⏰ শেষ','বিরতি নিন'); }
-            else { logSession(5); playBeep(); showOverlay('☕ বিরতি শেষ','পড়তে বসুন'); }
-            return; }
-        timeLeft--; document.getElementById('timerDisplay').textContent = fmtTime(timeLeft);
-    }, 1000);
-}
-function stopTimer() { if(timerInt) clearInterval(timerInt); timerRun=false; timeLeft=0; document.getElementById('timerDisplay').textContent='25:00'; }
-function fmtTime(s) { return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
-function enableAlarms() {
-    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    if(audioCtx.state==='suspended') audioCtx.resume().then(()=>{ alarmsOn=true; document.getElementById('enableAlarmBtn').textContent='✅ সক্রিয়'; startAlarmCheck(); });
-    else { alarmsOn=true; document.getElementById('enableAlarmBtn').textContent='✅ সক্রিয়'; startAlarmCheck(); }
-}
-function playBeep() {
-    if(!audioCtx||audioCtx.state!=='running') return;
-    if(navigator.vibrate) navigator.vibrate([500,300,500]);
-    const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='square'; o.frequency.value=800; g.gain.value=0.3;
-    o.connect(g); g.connect(audioCtx.destination); o.start(); setTimeout(()=>o.stop(),2000);
-}
-function showOverlay(t,m) { document.getElementById('alarmTitle').textContent=t; document.getElementById('alarmMessage').textContent=m; document.getElementById('alarmOverlay').classList.add('active'); }
-function dismissAlarm() { document.getElementById('alarmOverlay').classList.remove('active'); }
-const ptm = {0:{fajr:[5,15],zuhr:[12,5],asr:[15,45],maghrib:[17,30],isha:[18,50]},1:{fajr:[5,5],zuhr:[12,10],asr:[16,5],maghrib:[17,45],isha:[19,5]},2:{fajr:[4,40],zuhr:[12,5],asr:[16,25],maghrib:[18,0],isha:[19,15]},3:{fajr:[4,10],zuhr:[11,58],asr:[16,30],maghrib:[18,12],isha:[19,30]},4:{fajr:[3,45],zuhr:[11,55],asr:[16,30],maghrib:[18,25],isha:[19,45]},5:{fajr:[3,45],zuhr:[12,0],asr:[16,35],maghrib:[18,40],isha:[20,0]},6:{fajr:[3,55],zuhr:[12,5],asr:[16,35],maghrib:[18,45],isha:[20,5]},7:{fajr:[4,10],zuhr:[12,5],asr:[16,30],maghrib:[18,30],isha:[19,50]},8:{fajr:[4,25],zuhr:[11,58],asr:[16,15],maghrib:[18,0],isha:[19,20]},9:{fajr:[4,40],zuhr:[11,50],asr:[15,50],maghrib:[17,30],isha:[18,50]},10:{fajr:[4,55],zuhr:[11,50],asr:[15,30],maghrib:[17,10],isha:[18,30]},11:{fajr:[5,10],zuhr:[11,55],asr:[15,25],maghrib:[17,10],isha:[18,30]}};
-function startAlarmCheck() { if(alarmInt) clearInterval(alarmInt); alarmInt=setInterval(checkAlarms,10000); checkAlarms(); }
-function checkAlarms() {
-    if(!alarmsOn) return;
-    const n=new Date(), h=n.getHours(), m=n.getMinutes(), key='alarm_'+getToday(), fired=JSON.parse(localStorage.getItem(key)||'[]');
-    const p=ptm[n.getMonth()];
-    const items = [
-        {name:'ফজর',h:p.fajr[0],m:p.fajr[1],id:'pf'},{name:'যোহর',h:p.zuhr[0],m:p.zuhr[1],id:'pz'},{name:'আসর',h:p.asr[0],m:p.asr[1],id:'pa'},
-        {name:'মাগরিব',h:p.maghrib[0],m:p.maghrib[1],id:'pm'},{name:'এশা',h:p.isha[0],m:p.isha[1],id:'pi'},
-        {name:'নাস্তা',h:8,m:30,id:'nb'},{name:'দুপুর',h:13,m:30,id:'nl'},{name:'রাত',h:20,m:30,id:'nd'},
-        {name:'হাঁটা সকাল',h:7,m:0,id:'wm'},{name:'হাঁটা বিকাল',h:17,m:0,id:'we'}
-    ];
-    items.forEach(i => { if(h===i.h&&m===i.m&&!fired.includes(i.id)) { playBeep(); showOverlay('⏰ '+i.name,i.name+' এর সময় হয়েছে'); fired.push(i.id); } });
-    localStorage.setItem(key, JSON.stringify(fired));
-}
+            <div class="card">
+                <h3><i class="fa-solid fa-eye"></i> ভিশন বোর্ড: "কেন জুয়া ছাড়ছি?"</h3>
+                <textarea id="visionText" rows="4" style="width:100%;" placeholder="আপনার পরিবার, ক্যারিয়ার বা স্বপ্নের কথা লিখুন..."></textarea>
+                <button class="btn btn-purple mt-2" style="width:100%; margin-bottom:10px;" onclick="saveVision()">সংরক্ষণ করুন</button>
+                <h4 style="font-size:0.9em; margin-bottom:5px;">স্বপ্নের ছবি (Collage)</h4>
+                <input type="file" id="visionImageInput" accept="image/*" style="margin-bottom:10px; width:100%; color:var(--text2);">
+                <div id="visionImagePreview" style="width:100%; height:150px; border:2px dashed var(--border); border-radius:10px; background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; color:var(--text2);">ছবি নির্বাচন করুন</div>
+            </div>
+        </div>
+    </div>
 
-// ==================== থিম ও সেটিংস ====================
-function changeTheme() {
-    const t = document.getElementById('themeSelect').value;
-    document.body.classList.remove('theme-ocean','theme-forest','theme-gold');
-    if(t!=='default') document.body.classList.add('theme-'+t);
-    localStorage.setItem('appTheme', t);
-}
-function toggleDark() { document.body.classList.toggle('dark'); localStorage.setItem('dark',document.body.classList.contains('dark')?'1':'0'); }
-function exportData() {
-    const b = new Blob([JSON.stringify(appData)],{type:'application/json'});
-    const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download='hisab_backup.json'; a.click();
-}
-function importData(e) {
-    const f = e.target.files[0]; if(!f) return;
-    const r = new FileReader();
-    r.onload = ev => { try { appData = JSON.parse(ev.target.result); ensureData(); save(); toast('ইম্পোর্ট সম্পন্ন'); refreshAll(); } catch(ex) { toast('ফাইল সঠিক নয়'); } };
-    r.readAsText(f);
-}
+    <div class="tab-content" id="tab-more">
+        <div class="main-grid">
+            <div class="card">
+                <h3><i class="fa-solid fa-trophy"></i> গ্যামিফিকেশন ও অ্যাচিভমেন্ট</h3>
+                <p>মোট XP: <strong id="xpText">0</strong> | লেভেল: <strong id="levelText">1</strong></p>
+                <div class="progress-bar"><div class="progress-fill" id="xpProgress" style="width: 0%; background:gold;">0%</div></div>
+                <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:10px;" id="badgeContainer">
+                    </div>
+            </div>
 
-// ==================== INIT ====================
-window.onload = function() {
-    if(localStorage.getItem('dark')==='1') document.body.classList.add('dark');
-    const th = localStorage.getItem('appTheme')||'default';
-    document.getElementById('themeSelect').value = th;
-    if(th!=='default') document.body.classList.add('theme-'+th);
-    updateCat();
-    updateBanner();
-    switchMainTab('hisab');
-};
-</script>
+            <div class="card">
+                <h3><i class="fa-solid fa-chart-line"></i> বিশ্লেষণ ও রিপোর্ট</h3>
+                <button class="btn btn-purple" style="width: 100%; margin-bottom: 10px;" onclick="openAnalytics()">বিস্তারিত চার্ট দেখুন</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-cyan" style="flex: 1;" onclick="exportPDF()">PDF রিপোর্ট</button>
+                    <button class="btn btn-blue" style="flex: 1;" onclick="exportCSV()">CSV এক্সপোর্ট</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fa-solid fa-lightbulb"></i> এআই সাপ্তাহিক ইনসাইট</h3>
+                <p style="font-size:0.85em; color:var(--text2); margin-bottom:10px;">আপনার গত ৭ দিনের জার্নাল বিশ্লেষণ করে এআই একটি রিপোর্ট তৈরি করবে।</p>
+                <button class="btn btn-pink" style="width:100%;" onclick="generateJournalInsight()"><i class="fa-solid fa-wand-magic-sparkles"></i> ইনসাইট তৈরি করুন</button>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fa-solid fa-cloud"></i> ডেটা ম্যানেজমেন্ট</h3>
+                <div style="display: flex; gap: 10px; margin-bottom:10px;">
+                    <button class="btn btn-green" style="flex: 1;" onclick="downloadJSON()">ব্যাকআপ</button>
+                    <button class="btn btn-orange" style="flex: 1;" onclick="document.getElementById('uploadJson').click()">রিস্টোর</button>
+                    <input type="file" id="uploadJson" accept=".json" style="display:none" onchange="uploadJSON(event)">
+                </div>
+                <button class="btn btn-red" style="width:100%;" onclick="requestNotification()"><i class="fa-solid fa-bell"></i> সিস্টেম নোটিফিকেশন চালু করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="sosModal">
+        <div class="modal" style="text-align: center;">
+            <span style="font-size: 4em;">🛑</span>
+            <h2 style="color: var(--danger);">থেমে যান!</h2>
+            <p>আপনি ইতিমধ্যে <strong><span id="sosStreak">0</span> দিন</strong> জুয়া থেকে দূরে আছেন। এই কষ্ট নষ্ট করবেন না। আপনার পরিবার আপনার দিকে তাকিয়ে আছে।</p>
+            <p style="margin-top:10px; color:var(--text2);">আমরা ৫ মিনিট পর আপনাকে একটি নোটিফিকেশন পাঠাবো। ততক্ষণ দীর্ঘশ্বাস নিন।</p>
+            <button class="btn btn-green" style="margin-top: 20px; font-size: 1.2em; width:100%;" onclick="closeSOS()">আমি পারবো, আমি খেলবো না!</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="analyticsModal">
+        <div class="modal">
+            <h2><i class="fa-solid fa-chart-pie"></i> অ্যানালিটিক্স ও ট্রিগার প্যাটার্ন</h2>
+            <p style="text-align:center; margin-top:10px;">খরচের ক্যাটাগরি</p>
+            <div style="height: 200px; margin-top: 10px;"><canvas id="expenseChart"></canvas></div>
+            <p style="text-align:center; margin-top:20px;">আর্জ (Urge) ফ্রিকোয়েন্সি</p>
+            <div style="height: 200px; margin-top: 10px;"><canvas id="urgeChart"></canvas></div>
+            
+            <h3 style="margin-top:25px; color:var(--cyan); border-bottom:1px solid var(--border); padding-bottom:5px;">অ্যাডভান্সড ইনসাইট</h3>
+            <p style="text-align:center; margin-top:10px;">বিস্তারিত ট্রিগার কারণ (Pie Chart)</p>
+            <div style="height: 200px; margin-top: 10px;"><canvas id="advTriggerChart"></canvas></div>
+            
+            <p style="text-align:center; margin-top:20px;">গত ৩ মাসের এক্সপেন্স ট্রেন্ড</p>
+            <div style="height: 200px; margin-top: 10px;"><canvas id="expenseTrendChart"></canvas></div>
+
+            <p style="text-align:center; margin-top:20px;">মাসিক মুড ক্যালেন্ডার (গত ৩০ দিন)</p>
+            <div class="calendar-grid" id="moodCalendarGrid"></div>
+
+            <button class="btn btn-red" style="margin-top: 20px; width: 100%;" onclick="document.getElementById('analyticsModal').classList.remove('active')">বন্ধ করুন</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="copingModal">
+        <div class="modal">
+            <h2 style="color:var(--accent);"><i class="fa-solid fa-book-medical"></i> কোপিং স্কিল লাইব্রেরি</h2>
+            <ul class="coping-list" style="margin-top:15px; padding:0;">
+                <li><i class="fa-solid fa-droplet text-blue" style="color:var(--blue); font-size:1.5em;"></i><div><strong>ঠান্ডা পানি পান:</strong> এক গ্লাস একদম ঠান্ডা পানি ধীরে ধীরে পান করুন।</div></li>
+                <li><i class="fa-solid fa-wind text-cyan" style="color:var(--cyan); font-size:1.5em;"></i><div><strong>৪-৭-৮ ব্রিদিং:</strong> ৪ সেকেন্ড শ্বাস নিন, ৭ সেকেন্ড ধরুন, ৮ সেকেন্ডে ছাড়ুন।</div></li>
+                <li><i class="fa-solid fa-eye text-warning" style="color:var(--warning); font-size:1.5em;"></i><div><strong>৫-৪-৩-২-১ গ্রাউন্ডিং:</strong> আশেপাশে ৫টি জিনিস দেখুন, ৪টি জিনিস স্পর্শ করুন, ৩টি শব্দ শুনুন।</div></li>
+                <li><i class="fa-solid fa-person-walking text-accent" style="color:var(--accent); font-size:1.5em;"></i><div><strong>স্থান পরিবর্তন:</strong> যে রুমে আছেন, সেখান থেকে উঠে অন্তত ১০ মিনিট বাইরে হাঁটুন।</div></li>
+                <li><i class="fa-solid fa-phone text-pink" style="color:var(--pink); font-size:1.5em;"></i><div><strong>কথা বলুন:</strong> ট্রাস্টেড বন্ধু বা ইমার্জেন্সি কন্টাক্টে কল করে অন্য কোনো বিষয়ে কথা বলুন।</div></li>
+                <li><i class="fa-solid fa-pen text-purple" style="color:var(--purple); font-size:1.5em;"></i><div><strong>জার্নালিং:</strong> আপনার বর্তমান অনুভূতি ড্যাশবোর্ডের জার্নালে লিখে ফেলুন।</div></li>
+                
+                <li><i class="fa-solid fa-shower text-blue" style="color:var(--blue); font-size:1.5em;"></i><div><strong>ঠান্ডা পানির ঝাপটা:</strong> মুখে ঠান্ডা পানির ঝাপটা দিন।</div></li>
+                <li><i class="fa-solid fa-headphones text-purple" style="color:var(--purple); font-size:1.5em;"></i><div><strong>প্রিয় গান শুনুন:</strong> হেডফোনে প্রিয় মিউজিক বা তিলাওয়াত শুনুন।</div></li>
+                <li><i class="fa-solid fa-dumbbell text-accent" style="color:var(--accent); font-size:1.5em;"></i><div><strong>পুশ-আপস:</strong> ১০টি পুশ-আপস করে শরীরে রক্ত চলাচল বাড়ান।</div></li>
+                <li><i class="fa-solid fa-pencil text-warning" style="color:var(--warning); font-size:1.5em;"></i><div><strong>লেখার মাধ্যমে প্রকাশ:</strong> একটি কাগজে সব রাগ-ক্ষোভ লিখে ফেলুন।</div></li>
+                <li><i class="fa-solid fa-envelope text-pink" style="color:var(--pink); font-size:1.5em;"></i><div><strong>ভবিষ্যতের চিঠি:</strong> ৫ বছর পরের নিজেকে একটি চিঠি লিখুন।</div></li>
+            </ul>
+            <button class="btn btn-red" style="margin-top: 15px; width: 100%;" onclick="document.getElementById('copingModal').classList.remove('active')">বন্ধ করুন</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="relapseModal">
+        <div class="modal">
+            <h2 style="color:var(--danger);"><i class="fa-solid fa-file-medical"></i> রিল্যাপস অটোপসি (পোস্ট-মর্টেম)</h2>
+            <p style="font-size:0.85em; margin-bottom:15px;">ভুল থেকে শিক্ষাই বড় জয়। সততার সাথে নিচের ফর্মটি পূরণ করুন।</p>
+            <div class="input-group"><input type="datetime-local" id="rlpTime"></div>
+            <div class="input-group"><input type="text" id="rlpLocation" placeholder="কোথায় ছিলেন? (যেমন: নিজের রুমে, একা)"></div>
+            <div class="input-group"><input type="text" id="rlpTrigger" placeholder="কী কারণে হলো? (টাকার চাপ, একাকিত্ব, রাগ)"></div>
+            <div class="input-group"><textarea id="rlpFeelings" rows="2" placeholder="খেলার ঠিক আগে কেমন লাগছিল?"></textarea></div>
+            <div class="input-group"><textarea id="rlpLessons" rows="2" placeholder="এই ঘটনা থেকে কী শিখলেন? ভবিষ্যতে কী করবেন?"></textarea></div>
+            <button class="btn btn-green" style="width: 100%;" onclick="saveRelapseAutopsy()">অটোপসি সেভ করুন (XP)</button>
+            <button class="btn btn-red" style="margin-top: 10px; width: 100%;" onclick="document.getElementById('relapseModal').classList.remove('active')">বন্ধ করুন</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="triggerModal">
+        <div class="modal">
+            <h2 style="color:var(--purple);"><i class="fa-solid fa-clipboard-list"></i> বিস্তারিত ট্রিগার লগ</h2>
+            <div class="input-group"><select id="trgMood"><option value="একা">একা</option><option value="রাগ">রাগ</option><option value="দুঃখ">দুঃখ</option><option value="অর্থনৈতিক চাপ">অর্থনৈতিক চাপ</option><option value="বিরক্তি">বিরক্তি</option></select></div>
+            <div class="input-group"><input type="text" id="trgLocation" placeholder="কোথায় ছিলেন?"></div>
+            <div class="input-group"><input type="text" id="trgPeople" placeholder="কার সাথে ছিলেন? (বা একা)"></div>
+            <button class="btn btn-purple" style="width: 100%;" onclick="saveAdvancedTrigger()">ট্রিগার লগ করুন (+30 XP)</button>
+            <button class="btn btn-red" style="margin-top: 10px; width: 100%;" onclick="document.getElementById('triggerModal').classList.remove('active')">বন্ধ করুন</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="insightModal">
+        <div class="modal">
+            <h2 style="color:var(--pink);"><i class="fa-solid fa-wand-magic-sparkles"></i> এআই জার্নাল ইনসাইট</h2>
+            <div id="insightContent" style="margin:15px 0; background:var(--input-bg); padding:15px; border-radius:10px; line-height:1.6;">
+                লোড হচ্ছে...
+            </div>
+            <button class="btn btn-red" style="width: 100%;" onclick="document.getElementById('insightModal').classList.remove('active')">বন্ধ করুন</button>
+        </div>
+    </div>
+
+    <div id="toastContainer"></div>
+
+    <div class="bottom-nav">
+        <button class="active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-gauge"></i> ড্যাশ</button>
+        <button onclick="switchTab('health', this)"><i class="fa-solid fa-heart-pulse"></i> হেলথ</button>
+        <button onclick="switchTab('finance', this)"><i class="fa-solid fa-wallet"></i> অর্থ</button>
+        <button onclick="switchTab('spiritual', this)"><i class="fa-solid fa-mosque"></i> ধর্ম</button>
+        <button onclick="switchTab('toolkit', this)"><i class="fa-solid fa-toolbox"></i> টুলকিট</button>
+        <button onclick="switchTab('goals', this)"><i class="fa-solid fa-bullseye"></i> লক্ষ্য</button>
+        <button onclick="switchTab('more', this)"><i class="fa-solid fa-bars"></i> আরও</button>
+    </div>
+
+    <script>
+        /* ==========================================
+           1. Core Setup & Master Data
+           ========================================== */
+        const firebaseConfig = { apiKey: "AIzaSyDKniQatcaQPCnB87Gz-6XeLaXcAQc28rc", authDomain: "hisab-tracker-9d867.firebaseapp.com", databaseURL: "https://hisab-tracker-9d867-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "hisab-tracker-9d867", storageBucket: "hisab-tracker-9d867.firebasestorage.app", messagingSenderId: "424669328740", appId: "1:424669328740:web:67bc86e8a0cb03850bb671" };
+        firebase.initializeApp(firebaseConfig); const auth = firebase.auth(); const db = firebase.database(); let dbRef = null;
+
+        const defaultData = {
+            streakDays: 0, debtPaid: 0, savingsGoal: 0, monthlyBudget: 0, pomodoroSessions: 0, xp: 0, level: 1,
+            expenses: [], incomes: [], smokes: [], urges: [], prayers: {}, moods: {}, journals: {}, water: {},
+            quran: [], dhikr: [], exercises: [], sleep: [], routines: {}, goals: { short: [], long: [] }, vision: "", emContact: "",
+            incCats: ['টিউশনি', 'বৃত্তি', 'দাওয়াত', 'অন্যান্য'], expCats: ['খাওয়া-দাওয়া', 'যাতায়াত', 'পড়াশোনা', 'মোবাইল/ইন্টারনেট', 'বিনোদন', 'অন্যান্য']
+        };
+
+        let appData = JSON.parse(localStorage.getItem('recoveryAppData')) || JSON.parse(JSON.stringify(defaultData));
+
+        // FIXED FEATURE JS: Typo fixed in quotesLib string ("নষ্ট করবেন ঘন করবেন না" -> "নষ্ট করবেন না")
+        const quotesLib = [
+            "অন্ধকার যতই গভীর হোক, ভোর আসবেই।", "জুয়া আপনাকে ধনী করবে না, এটি আপনাকে নিঃস্ব করবে।", "আজকের কষ্ট আগামীকালের শক্তি।",
+            "প্রতিটি জুয়া-মুক্ত দিন একটি বড় বিজয়।", "আপনার পরিবার আপনার সবচেয়ে বড় সম্পদ, জুয়া নয়।", "টাকা হারানো যায়, কিন্তু বিশ্বাস হারালে ফেরে না।",
+            "একবার হারলে জেতার জেদ, ধ্বংসের প্রথম ধাপ।", "নিজেকে কন্ট্রোল করা পৃথিবীর সবচেয়ে বড় ক্ষমতা।", "শর্টকাটে বড়লোক হওয়ার স্বপ্ন একটি ফাঁদ।",
+            "যেখানে পরিশ্রম নেই, সেখানে স্থায়ী সফলতা নেই।", "আপনার জীবন একটি ক্যাসিনো চিপ নয়।", "আজ থামুন, কালকের সকালটা সুন্দর হবে।",
+            "জুয়াড়ির কোনো শেষ জয় নেই, কেবলই শেষ হার আছে।", "লোভ মানুষের পতন ডেকে আনে।", "নিজের উপর বিশ্বাস রাখুন, আপনি পারবেন।",
+            "আপনার ভবিষ্যৎ আপনার আজকের সিদ্ধান্তের উপর নির্ভরশীল।", "জুয়া একটি মানসিক ব্যাধি, এটি থেকে মুক্তি সম্ভব।", "টাকার চেয়ে মানসিক শান্তি অনেক বেশি মূল্যবান।",
+            "যারা আপনাকে ভালোবাসে, তাদের কথা ভাবুন।", "একটি ভুল সিদ্ধান্ত সারাজীবনের কান্না হতে পারে।", "ধৈর্য ধরুন, ভালো সময় অবশ্যই আসবে।",
+            "মিথ্যা আশার পেছনে ছুটে বাস্তবতাকে হারাবেন না।", "আজকের আত্মনিয়ন্ত্রণ আগামীকালের স্বাধীনতা।", "জুয়া টেবিল থেকে কেউ জয়ী হয়ে ফেরে না।",
+            "আপনার জীবনের নিয়ন্ত্রক আপনি নিজেই।", "হারানো টাকা ভুলে যান, হারানো সম্মান ফিরে পান।", "নতুন শুরু করার জন্য আজকের দিনটিই সেরা।",
+            "ভুল থেকে শিক্ষা নেওয়াই বুদ্ধিমানের কাজ।", "সাময়িক উত্তেজনার জন্য স্থায়ী শান্তি নষ্ট করবেন না।", "আপনি একা নন, এই যুদ্ধে আমরা সাথে আছি।"
+        ];
+
+        const duasLib = [
+            "রাব্বানা আতিনা ফিদ দুনিয়া হাসানাতাও ওয়াফিল আখিরাতি হাসানাতাও ওয়াকিনা আজাবান নার।",
+            "লা ইলাহা ইল্লা আনতা সুবহানাকা ইন্নি কুনতু মিনাজ জোয়ালিমিন।",
+            "রাব্বিশ রাহলি সাদরি, ওয়া ইয়াসসির লি আমরি।",
+            "হাসবুনাল্লাহু ওয়া নি'মাল ওয়াকিল।", "ইয়া মুকাল্লিবাল কুলুব, সাব্বিত কালবি আলা দিনিক।",
+            "লা হাওলা ওয়ালা কুওয়াতা ইল্লা বিল্লাহ।", "রাব্বির হামহুমা কামা রাব্বায়ানি সাগিরা।",
+            "নিশ্চয়ই কষ্টের সাথেই রয়েছে স্বস্তি। (সূরা ইনশিরাহ)", "আল্লাহ ধৈর্যশীলদের সাথে আছেন।",
+            "হে আল্লাহ, আমাকে হালাল রিজিক দান করুন এবং হারাম থেকে দূরে রাখুন।" 
+        ];
+
+        function saveData(silent = false) {
+            const arrFields = ['expenses', 'incomes', 'smokes', 'urges', 'quran', 'dhikr', 'exercises', 'sleep', 'incCats', 'expCats'];
+            arrFields.forEach(f => { if(!Array.isArray(appData[f])) appData[f] = Object.values(appData[f] || {}); });
+            if(!appData.goals) appData.goals = {short:[], long:[]};
+            localStorage.setItem('recoveryAppData', JSON.stringify(appData));
+            if (navigator.onLine && dbRef) {
+                dbRef.set(appData).then(() => { document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:var(--accent)"></i> সিঙ্কড'; }).catch(e => console.log(e));
+            } else { document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-cloud-arrow-down" style="color:var(--warning)"></i> অফলাইন'; }
+            if(!silent) renderAll();
+        }
+
+        auth.signInAnonymously().then(() => { auth.onAuthStateChanged(user => { if (user) { dbRef = db.ref('users/' + user.uid + '/data'); if (navigator.onLine) { dbRef.once('value').then(snap => { if (snap.exists()) { appData = { ...defaultData, ...snap.val() }; saveData(true); renderAll(); } }); } } }); });
+        window.addEventListener('online', () => { showToast('অনলাইন! সিঙ্ক হচ্ছে...'); saveData(true); });
+
+        /* ==========================================
+           2. Utils & Auto Theme & Notifications
+           ========================================== */
+        function getLocalIsoDate(dObj) { return new Date(dObj.getTime() - (dObj.getTimezoneOffset() * 60000)).toISOString().slice(0, 10); }
+        document.getElementById('currentDate').value = getLocalIsoDate(new Date());
+        function getSelectedDate() { return document.getElementById('currentDate').value; }
+        function showToast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.innerText = msg; document.getElementById('toastContainer').appendChild(t); setTimeout(() => t.remove(), 3000); }
+        function formatMoney(n) { return Number(n).toLocaleString('bn-IN'); }
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active'); btn.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' }); if(tabId === 'finance') renderCategories(); if(tabId === 'goals') renderGoals();
+        }
+
+        function applyTheme(force) {
+            let next = force;
+            if(!next) { const h = new Date().getHours(); next = (h>=6 && h<18) ? 'light' : 'dark'; }
+            document.documentElement.setAttribute('data-theme', next); localStorage.setItem('appTheme', next);
+            document.getElementById('themeIcon').className = next === 'light' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
+        function toggleTheme() { applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); }
+        applyTheme(localStorage.getItem('appTheme'));
+
+        function requestNotification() {
+            if('Notification' in window) { Notification.requestPermission().then(p => { if(p==='granted') { showToast('নোটিফিকেশন চালু হয়েছে!'); scheduleNotifs(); } }); }
+        }
+        function scheduleNotifs() {
+            if(Notification.permission === 'granted') {
+                setInterval(() => { new Notification("পানি পানের সময়!", {body:"এক গ্লাস পানি পান করুন।", icon:"💧"}); }, 3600000);
+            }
+        }
+
+        function addXP(amount) {
+            appData.xp += amount;
+            const newLevel = Math.floor(appData.xp / 100) + 1;
+            if(newLevel > appData.level) { appData.level = newLevel; showToast(`🎉 লেভেল আপ! আপনি এখন লেভেল ${newLevel}`); confetti(); }
+            saveData(true);
+        }
+
+        /* ==========================================
+           3. UI Rendering
+           ========================================== */
+        function renderAll() {
+            const date = getSelectedDate(); const month = date.slice(0, 7);
+            
+            document.getElementById('streakChart').style.background = `conic-gradient(var(--accent) ${Math.min(appData.streakDays*3.6, 360)}deg, #334155 0deg)`;
+            document.getElementById('streakChart').innerText = appData.streakDays; document.getElementById('streakText').innerText = appData.streakDays + ' দিন';
+            let debtPct = Math.round((appData.debtPaid / 30000) * 100) || 0; document.getElementById('debtChart').style.background = `conic-gradient(var(--accent) ${debtPct*3.6}deg, #334155 0deg)`;
+            document.getElementById('debtChart').innerText = debtPct + '%'; document.getElementById('debtText').innerText = formatMoney(appData.debtPaid) + ' / 30k';
+            let savePct = Math.round((appData.savingsGoal / 11500) * 100) || 0; document.getElementById('savingsChart').style.background = `conic-gradient(var(--accent) ${savePct*3.6}deg, #334155 0deg)`;
+            document.getElementById('savingsChart').innerText = savePct + '%'; document.getElementById('savingsText').innerText = formatMoney(appData.savingsGoal) + ' / 11.5k';
+
+            document.getElementById('realTimeSave').innerText = formatMoney(appData.streakDays * 300);
+
+            document.getElementById('userLevelBadge').innerText = `Level ${appData.level}`;
+            document.getElementById('xpText').innerText = appData.xp; document.getElementById('levelText').innerText = appData.level;
+            document.getElementById('xpProgress').style.width = (appData.xp % 100) + '%';
+            
+            let badgesHTML = '';
+            if(appData.streakDays >= 7) badgesHTML += `<span class="badge" style="background:#cd7f32; color:#fff;">🥉 ব্রোঞ্জ (৭ দিন)</span>`;
+            if(appData.streakDays >= 30) badgesHTML += `<span class="badge" style="background:#c0c0c0; color:#000;">🥈 সিলভার (৩০ দিন)</span>`;
+            if(appData.streakDays >= 100) badgesHTML += `<span class="badge" style="background:#ffd700; color:#000;">🥇 গোল্ড (১০০ দিন)</span>`;
+            document.getElementById('badgeContainer').innerHTML = badgesHTML || '<small>কোনো ব্যাজ নেই</small>';
+
+            document.getElementById('todayMood').innerText = appData.moods[date] || '-';
+            document.getElementById('journalText').value = appData.journals[date] || '';
+            document.getElementById('visionText').value = appData.vision || '';
+            document.getElementById('emContact').value = appData.emContact || '';
+
+            const tSmokes = appData.smokes.filter(s => s.date === date);
+            document.getElementById('todaySmokeCount').innerText = tSmokes.reduce((a,b)=>a+Number(b.count), 0);
+            document.getElementById('todaySmokeCost').innerText = formatMoney(tSmokes.reduce((a,b)=>a+(Number(b.count)*Number(b.price)), 0));
+            const wCount = appData.water[date] || 0; document.getElementById('waterCount').innerText = wCount;
+            document.getElementById('waterProgress').style.width = Math.min((wCount/8)*100, 100) + '%';
+
+            const rt = appData.routines[date] || {};
+            document.getElementById('rtMorn').checked = !!rt.morn; document.getElementById('rtRead').checked = !!rt.read; document.getElementById('rtNight').checked = !!rt.night;
+
+            const tInc = appData.incomes.filter(i => i.date === date).reduce((a,b)=>a+Number(b.amount),0);
+            const tExp = appData.expenses.filter(e => e.date === date).reduce((a,b)=>a+Number(b.amount),0);
+            const mExp = appData.expenses.filter(e => e.date.startsWith(month)).reduce((a,b)=>a+Number(b.amount),0);
+            document.getElementById('todayIncText').innerText = formatMoney(tInc); document.getElementById('todayExpText').innerText = formatMoney(tExp);
+            document.getElementById('budgetText').innerText = formatMoney(appData.monthlyBudget); document.getElementById('budgetSpent').innerText = formatMoney(mExp);
+            let bPct = appData.monthlyBudget ? Math.round((mExp/appData.monthlyBudget)*100) : 0;
+            document.getElementById('budgetProgress').style.width = Math.min(bPct, 100) + '%'; document.getElementById('budgetProgress').style.background = bPct > 100 ? 'var(--danger)' : 'var(--accent)';
+
+            const p = appData.prayers[date] || {};
+            document.getElementById('pFajr').checked = !!p.fajr; document.getElementById('pDhuhr').checked = !!p.dhuhr; document.getElementById('pAsr').checked = !!p.asr;
+            document.getElementById('pMaghrib').checked = !!p.maghrib; document.getElementById('pIsha').checked = !!p.isha; document.getElementById('pQaza').checked = !!p.qaza;
+            document.getElementById('todayUrgeText').innerText = appData.urges.filter(u => u.date === date).length;
+
+            renderCategories(); renderGoals();
+        }
+
+        /* ==========================================
+           4. Inputs & Logics
+           ========================================== */
+        function saveMood(mood) { appData.moods[getSelectedDate()] = mood; addXP(5); saveData(); showToast('মুড সেভ হয়েছে! +5 XP'); }
+        function saveJournal() { const text = document.getElementById('journalText').value; if(text){ appData.journals[getSelectedDate()] = text; addXP(10); saveData(); showToast('জার্নাল সেভ! +10 XP'); } }
+        function updateWater(val) { const d = getSelectedDate(); appData.water[d] = Math.max(0, (appData.water[d] || 0) + val); if(val>0) addXP(2); saveData(); }
+        function savePrayer() { appData.prayers[getSelectedDate()] = { fajr: document.getElementById('pFajr').checked, dhuhr: document.getElementById('pDhuhr').checked, asr: document.getElementById('pAsr').checked, maghrib: document.getElementById('pMaghrib').checked, isha: document.getElementById('pIsha').checked, qaza: document.getElementById('pQaza').checked }; addXP(5); saveData(); }
+        function addUrge() { const r = document.getElementById('urgeReason').value || 'উল্লেখ নেই'; appData.urges.push({ date: getSelectedDate(), reason: r }); document.getElementById('urgeReason').value=''; addXP(20); saveData(); showToast('প্রতিরোধের জন্য +20 XP!'); }
+        function updateRoutine() { appData.routines[getSelectedDate()] = { morn: document.getElementById('rtMorn').checked, read: document.getElementById('rtRead').checked, night: document.getElementById('rtNight').checked }; addXP(5); saveData(true); }
+        
+        function addSmoke() { const c = document.getElementById('smokeCount').value; const p = document.getElementById('smokePrice').value; if(c && p) { appData.smokes.push({ date: getSelectedDate(), count: c, price: p }); saveData(); showToast('রেকর্ড হয়েছে'); } }
+        function calcBMI() { const w = document.getElementById('bmiW').value; const h = document.getElementById('bmiH').value / 100; if(w && h) { const bmi = (w / (h*h)).toFixed(1); let s = "স্বাভাবিক"; if(bmi>25) s="ওজন বেশি"; if(bmi<18.5) s="ওজন কম"; document.getElementById('bmiResult').innerText = `BMI: ${bmi} (${s})`; } }
+        
+        function renderCategories() { const iCat = document.getElementById('incomeCat'); const eCat = document.getElementById('expenseCat'); if(iCat) iCat.innerHTML = appData.incCats.map(c => `<option value="${c}">${c}</option>`).join(''); if(eCat) eCat.innerHTML = appData.expCats.map(c => `<option value="${c}">${c}</option>`).join(''); }
+        function addIncome() { const a = document.getElementById('incAmount').value; if(a) { appData.incomes.push({ date: getSelectedDate(), category: document.getElementById('incomeCat').value, amount: a }); document.getElementById('incAmount').value=''; addXP(5); saveData(); } }
+        function addExpense() { const a = document.getElementById('expAmount').value; if(a) { appData.expenses.push({ date: getSelectedDate(), category: document.getElementById('expenseCat').value, amount: a }); document.getElementById('expAmount').value=''; saveData(); } }
+        function saveBudget() { const b = document.getElementById('budgetLimit').value; if(b) { appData.monthlyBudget = Number(b); saveData(); } }
+        function payDebt() { const a = document.getElementById('debtPayAmount').value; if(a) { appData.debtPaid += Number(a); document.getElementById('debtPayAmount').value=''; addXP(10); saveData(); } }
+        function addSavings() { const a = document.getElementById('saveAmount').value; if(a) { appData.savingsGoal += Number(a); document.getElementById('saveAmount').value=''; addXP(10); saveData(); } }
+        
+        function saveVision() { appData.vision = document.getElementById('visionText').value; saveData(true); showToast('ভিশন বোর্ড সেভ হয়েছে');}
+        function saveContact() { appData.emContact = document.getElementById('emContact').value; saveData(true); showToast('কন্টাক্ট সেভ হয়েছে');}
+        
+        function renderGoals() {
+            const renderList = (arr, elId, type) => {
+                document.getElementById(elId).innerHTML = arr.map((g, i) => `<li style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border);"><span style="${g.done?'text-decoration:line-through;color:var(--text2)':''}">${g.text}</span> <div><input type="checkbox" ${g.done?'checked':''} onchange="toggleGoal('${type}',${i})"> <i class="fa-solid fa-trash text-danger" style="cursor:pointer;" onclick="delGoal('${type}',${i})"></i></div></li>`).join('');
+            };
+            renderList(appData.goals.short, 'sgList', 'short'); renderList(appData.goals.long, 'lgList', 'long');
+        }
+        function addGoal(type) { const val = document.getElementById(type==='short'?'sgInput':'lgInput').value; if(val) { appData.goals[type].push({text:val, done:false}); document.getElementById(type==='short'?'sgInput':'lgInput').value=''; addXP(10); saveData(); } }
+        function toggleGoal(type, i) { appData.goals[type][i].done = !appData.goals[type][i].done; if(appData.goals[type][i].done) addXP(20); saveData(); }
+        function delGoal(type, i) { appData.goals[type].splice(i,1); saveData(); }
+
+        function openSOS() {
+            document.getElementById('sosStreak').innerText = appData.streakDays;
+            document.getElementById('sosModal').classList.add('active');
+        }
+        function closeSOS() {
+            document.getElementById('sosModal').classList.remove('active');
+            showToast('৫ মিনিট পর আমরা নোটিফিকেশন পাঠাবো।');
+            if(Notification.permission==='granted') setTimeout(()=>{ new Notification("আপনি পেরেছেন!", {body:"৫ মিনিট পার হয়েছে। জুয়া না খেলে আপনি আজ জিতেছেন!", icon:"🏆"}); }, 300000);
+        }
+
+        function changeQuote() { document.getElementById('dailyQuote').innerText = `"${quotesLib[Math.floor(Math.random()*quotesLib.length)]}"`; }
+        function copyQuote() { navigator.clipboard.writeText(document.getElementById('dailyQuote').innerText); showToast('কপি হয়েছে!'); }
+        function changeDua() { document.getElementById('randomDua').innerText = `"${duasLib[Math.floor(Math.random()*duasLib.length)]}"`; }
+        changeQuote(); 
+
+        let breathing = false;
+        function toggleBreathing() {
+            const btn = document.getElementById('breathBtn'); const c = document.getElementById('breathCircle');
+            breathing = !breathing;
+            if(breathing){ c.classList.add('breathing-anim'); btn.innerText = "থামুন"; btn.classList.replace('btn-cyan', 'btn-red'); c.innerText="ব্রেদিং...";}
+            else { c.classList.remove('breathing-anim'); btn.innerText = "শুরু করুন"; btn.classList.replace('btn-red', 'btn-cyan'); c.innerText="শ্বাস নিন";}
+        }
+
+        function sendMessage() {
+            const inp = document.getElementById('chatInput'); const text = inp.value.trim(); if(!text) return;
+            const box = document.getElementById('chatBox');
+            box.innerHTML += `<div class="chat-bubble" style="text-align:right; border-right:4px solid var(--accent); border-left:none;">${text}</div>`;
+            inp.value = '';
+            
+            let reply = "আমি বুঝতে পারছি। শক্ত থাকুন, এক দিন করে এগিয়ে যান।";
+            if(text.includes("কষ্ট") || text.includes("খারাপ") || text.includes("sad")) reply = "কষ্ট হওয়া স্বাভাবিক। একটি দীর্ঘশ্বাস নিন এবং আপনার লক্ষ্যের কথা ভাবুন।";
+            if(text.includes("টাকা") || text.includes("মানি") || text.includes("money")) reply = "টাকা গেলে আবার কামানো যায়, কিন্তু মানসিক শান্তি হারালে তা ফিরে পাওয়া কঠিন।";
+            if(text.includes("খেলতে") || text.includes("urge")) reply = "এখনই উঠে পড়ুন! একটু হাঁটাচলা করুন অথবা ইমার্জেন্সি কন্টাক্টে কল দিন। আপনি জুয়ার চেয়ে শক্তিশালী।";
+            
+            setTimeout(()=>{ box.innerHTML += `<div class="chat-bubble chat-bot">${reply}</div>`; box.scrollTop = box.scrollHeight; }, 1000);
+        }
+
+        let exChart, urChart;
+        function openAnalytics() {
+            document.getElementById('analyticsModal').classList.add('active');
+            const cats = {}; appData.expenses.forEach(e => cats[e.category] = (cats[e.category]||0) + Number(e.amount));
+            const ctxE = document.getElementById('expenseChart').getContext('2d');
+            if(exChart) exChart.destroy(); exChart = new Chart(ctxE, { type: 'pie', data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'] }] }, options: { plugins: { legend: { position: 'right', labels:{color:'#fff'} } }, maintainAspectRatio: false } });
+
+            const urMonths = {}; appData.urges.forEach(u => { const m=u.date.slice(0,7); urMonths[m]=(urMonths[m]||0)+1; });
+            const ctxU = document.getElementById('urgeChart').getContext('2d');
+            if(urChart) urChart.destroy(); urChart = new Chart(ctxU, { type: 'bar', data: { labels: Object.keys(urMonths), datasets: [{ label: 'আর্জ প্রতিরোধ', data: Object.values(urMonths), backgroundColor: '#f97316' }] }, options:{ maintainAspectRatio: false } });
+        }
+
+        function downloadJSON() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(appData)], {type:'application/json'})); a.download = `recovery_pro_${getSelectedDate()}.json`; a.click(); showToast('ব্যাকআপ ডাউনলোড হয়েছে'); }
+        function uploadJSON(e) { const file = e.target.files[0]; if(file) { const reader = new FileReader(); reader.onload = function(evt) { try { appData = JSON.parse(evt.target.result); saveData(); showToast('রিস্টোর সফল!'); } catch(err) { alert('ফাইল সঠিক নয়!'); } }; reader.readAsText(file); } }
+        async function exportPDF() { showToast('PDF তৈরি হচ্ছে...'); const { jsPDF } = window.jspdf; const doc = new jsPDF(); const canvas = await html2canvas(document.body, { backgroundColor: '#0f172a' }); doc.addImage(canvas.toDataURL('image/jpeg', 0.8), 'JPEG', 10, 10, 190, (canvas.height*190)/canvas.width); doc.save(`report_${getSelectedDate()}.pdf`); }
+        function exportCSV() { const data = [['তারিখ', 'ধরন', 'বিবরণ', 'টাকা']]; appData.incomes.forEach(i => data.push([i.date, 'আয়', i.category, i.amount])); appData.expenses.forEach(e => data.push([e.date, 'খরচ', e.category, e.amount])); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\uFEFF' + Papa.unparse(data)], {type:'text/csv;charset=utf-8;'})); a.download = `data_${getSelectedDate()}.csv`; a.click(); }
+
+        function startVoice(targetId, btnId) {
+            const btn = document.getElementById(btnId); if (!('webkitSpeechRecognition' in window)) return alert('ব্রাউজার সাপোর্ট করে না।');
+            const recognition = new window.webkitSpeechRecognition(); recognition.lang = 'bn-BD'; btn.classList.add('listening'); recognition.start();
+            recognition.onresult = (e) => { document.getElementById(targetId).value += e.results[0][0].transcript; };
+            recognition.onend = () => btn.classList.remove('listening');
+        }
+
+        // ==========================================
+        // Data Initialization & Monkey Patching
+        // ==========================================
+
+        function initNewFeaturesData() {
+            if(!appData.prayerTimes) appData.prayerTimes = {fajr:"04:30", dhuhr:"13:00", asr:"16:30", maghrib:"18:30", isha:"20:00"};
+            if(!appData.bmiHistory) appData.bmiHistory = [];
+            if(!appData.habitsStack) appData.habitsStack = [];
+            if(!appData.dailyChallenges) appData.dailyChallenges = [];
+            if(!appData.relapseLogs) appData.relapseLogs = [];
+            if(!appData.advancedTriggerLogs) appData.advancedTriggerLogs = [];
+            if(!appData.visionImage) appData.visionImage = "";
+            
+            const today = getLocalIsoDate(new Date());
+            if(!appData.challengeDate || appData.challengeDate !== today) {
+                appData.challengeDate = today;
+                const templates = ["আজ ৩ বার আর্জ প্রতিরোধ করুন", "আজ ৮ গ্লাস পানি পান করুন", "আজ ৫ ওয়াক্ত নামাজ পড়ুন", "আজ জার্নাল লিখুন", "আজ ৩০ মিনিট বই পড়ুন", "আজ একটি নতুন কোপিং স্কিল শিখুন"];
+                appData.dailyChallenges = [];
+                for(let i=0; i<2; i++) {
+                    const rnd = templates[Math.floor(Math.random()*templates.length)];
+                    appData.dailyChallenges.push({text: rnd, done: false});
+                }
+                saveData(true);
+            }
+        }
+        initNewFeaturesData();
+
+        const originalRenderAll = renderAll;
+        renderAll = function() {
+            originalRenderAll();
+            renderNewFeatures();
+        };
+
+        function renderNewFeatures() {
+            renderBMIHistory();
+            renderDailyChallenges();
+            renderHabitStack();
+            renderPrayerTimes();
+            renderVisionImage();
+        }
+
+        const originalCalcBMI = calcBMI;
+        calcBMI = function() {
+            originalCalcBMI();
+            const resText = document.getElementById('bmiResult').innerText;
+            if(resText !== "-") {
+                const w = document.getElementById('bmiW').value;
+                appData.bmiHistory.push({date: getSelectedDate(), weight: w, result: resText.replace('BMI: ', '')});
+                if(appData.bmiHistory.length > 5) appData.bmiHistory.shift(); 
+                saveData(true);
+                renderBMIHistory();
+            }
+        };
+
+        function renderBMIHistory() {
+            const tbody = document.getElementById('bmiTbody');
+            if(tbody) {
+                tbody.innerHTML = appData.bmiHistory.slice().reverse().map(b => `<tr><td>${b.date.slice(5)}</td><td>${b.weight}</td><td>${b.result}</td></tr>`).join('');
+            }
+        }
+
+        function renderDailyChallenges() {
+            const container = document.getElementById('challengeContainer');
+            if(container) {
+                container.innerHTML = appData.dailyChallenges.map((c, i) => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:10px; border-radius:8px; margin-bottom:8px; border:1px solid var(--border);">
+                        <span style="${c.done?'text-decoration:line-through;color:var(--accent)':''}">${c.text}</span>
+                        <button class="btn ${c.done?'btn-green':'btn-blue'}" style="padding:5px 10px; font-size:0.8em;" onclick="toggleDailyChallenge(${i})">${c.done?'<i class="fa-solid fa-check"></i> সম্পন্ন':'করুন'}</button>
+                    </div>
+                `).join('');
+            }
+        }
+        window.toggleDailyChallenge = function(index) {
+            if(!appData.dailyChallenges[index].done) {
+                appData.dailyChallenges[index].done = true;
+                addXP(25);
+                showToast('চ্যালেঞ্জ সম্পন্ন! +25 XP');
+                confetti();
+            } else {
+                appData.dailyChallenges[index].done = false;
+            }
+            saveData(true);
+            renderDailyChallenges();
+        };
+
+        window.addNewHabit = function() {
+            const name = document.getElementById('newHabitName').value;
+            const days = parseInt(document.getElementById('newHabitDays').value);
+            if(name) {
+                appData.habitsStack.push({name, duration: days, start: getSelectedDate(), checks: {}});
+                document.getElementById('newHabitName').value = '';
+                saveData(true);
+                renderHabitStack();
+                showToast('নতুন হ্যাবিট যুক্ত হয়েছে!');
+            }
+        };
+
+        // NEW/FIXED FEATURE JS: Improved Habit Tracking Grid (Dropdown for 7/21/66 days & Emojis)
+        function renderHabitStack() {
+            const container = document.getElementById('habitStackContainer');
+            if(!container) return;
+            const today = getSelectedDate();
+            
+            const viewSelect = document.getElementById('habitViewSelect');
+            const viewDays = viewSelect ? parseInt(viewSelect.value) : 7;
+            
+            container.innerHTML = appData.habitsStack.map((h, i) => {
+                const totalChecks = Object.values(h.checks).filter(Boolean).length;
+                let grids = '';
+                for(let d=0; d<viewDays; d++) {
+                    let targetDate = new Date(); targetDate.setDate(targetDate.getDate() - ((viewDays-1)-d));
+                    let tdStr = getLocalIsoDate(targetDate);
+                    let isDone = h.checks[tdStr];
+                    
+                    let content = isDone ? '✅' : '❌';
+                    grids += `<div class="check-box" style="padding:2px; font-size:1.2em; border:none; background:transparent;" onclick="toggleHabitCheck(${i}, '${tdStr}')" title="${tdStr}">${content}</div>`;
+                }
+                return `<div style="background:var(--input-bg); padding:10px; border-radius:10px; margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                        <strong>${h.name}</strong> 
+                        <span class="badge badge-warning">${totalChecks}/${h.duration} দিন</span>
+                    </div>
+                    <div class="habit-grid" style="display:flex; flex-wrap:wrap; gap:5px; justify-content:flex-start; margin-top:5px; grid-template-columns:none;">
+                        ${grids}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        window.toggleHabitCheck = function(habitIndex, dateStr) {
+            if(!appData.habitsStack[habitIndex].checks[dateStr]) {
+                appData.habitsStack[habitIndex].checks[dateStr] = true;
+                addXP(10);
+            } else {
+                appData.habitsStack[habitIndex].checks[dateStr] = false;
+            }
+            saveData(true);
+            renderHabitStack();
+        };
+
+        window.calculateSIP = function() {
+            const p = parseFloat(document.getElementById('sipAmount').value);
+            const r = parseFloat(document.getElementById('sipRate').value) / 100 / 12;
+            const n = parseFloat(document.getElementById('sipYears').value) * 12;
+            if(p && r && n) {
+                const fv = p * ((Math.pow(1 + r, n) - 1) / r) * (1 + r);
+                const invested = p * n;
+                document.getElementById('sipResult').innerText = `জমা: ${formatMoney(invested)} ৳ | লাভসহ: ${formatMoney(Math.round(fv))} ৳`;
+            }
+        };
+        window.calculateDebtFree = function() {
+            const debt = parseFloat(document.getElementById('dfDebt').value);
+            const pay = parseFloat(document.getElementById('dfPay').value);
+            if(debt && pay && pay > 0) {
+                const months = Math.ceil(debt / pay);
+                const years = Math.floor(months/12); const m = months%12;
+                document.getElementById('dfResult').innerText = `সময় লাগবে: ${years>0?years+' বছর ':''}${m} মাস`;
+            }
+        };
+
+        // NEW FEATURE JS: Future Value Calculation Logic
+        window.calculateFV = function() {
+            const initial = parseFloat(document.getElementById('fvInitial').value) || 0;
+            const pmt = parseFloat(document.getElementById('fvMonthly').value) || 0;
+            const rate = parseFloat(document.getElementById('fvRate').value) || 0;
+            const years = parseFloat(document.getElementById('fvYears').value) || 0;
+            
+            if((initial || pmt) && rate && years) {
+                const r = rate / 100 / 12;
+                const n = years * 12;
+                let fv = 0;
+                if(r === 0) {
+                    fv = initial + (pmt * n);
+                } else {
+                    fv = initial * Math.pow(1 + r, n) + pmt * ((Math.pow(1 + r, n) - 1) / r);
+                }
+                const totalInvested = initial + (pmt * n);
+                document.getElementById('fvResult').innerText = `মোট জমা: ${formatMoney(totalInvested)} ৳ | ভবিষ্যৎ মূল্য: ${formatMoney(Math.round(fv))} ৳`;
+            }
+        };
+
+        function renderPrayerTimes() {
+            const cont = document.getElementById('prayerScheduleInputs');
+            if(!cont) return;
+            const pts = appData.prayerTimes;
+            cont.innerHTML = `
+                <div>ফজর: <input type="time" id="ptFajr" value="${pts.fajr}" style="padding:5px; width:100%; border-radius:5px; background:var(--bg); color:var(--text); border:1px solid var(--border);"></div>
+                <div>যোহর: <input type="time" id="ptDhuhr" value="${pts.dhuhr}" style="padding:5px; width:100%; border-radius:5px; background:var(--bg); color:var(--text); border:1px solid var(--border);"></div>
+                <div>আসর: <input type="time" id="ptAsr" value="${pts.asr}" style="padding:5px; width:100%; border-radius:5px; background:var(--bg); color:var(--text); border:1px solid var(--border);"></div>
+                <div>মাগরিব: <input type="time" id="ptMaghrib" value="${pts.maghrib}" style="padding:5px; width:100%; border-radius:5px; background:var(--bg); color:var(--text); border:1px solid var(--border);"></div>
+                <div>এশা: <input type="time" id="ptIsha" value="${pts.isha}" style="padding:5px; width:100%; border-radius:5px; background:var(--bg); color:var(--text); border:1px solid var(--border);"></div>
+            `;
+            const month = getSelectedDate().slice(0, 7);
+            let totalPossible = 0; let totalDone = 0;
+            Object.keys(appData.prayers).forEach(d => {
+                if(d.startsWith(month)) {
+                    totalPossible += 5;
+                    const pr = appData.prayers[d];
+                    if(pr.fajr) totalDone++; if(pr.dhuhr) totalDone++; if(pr.asr) totalDone++; if(pr.maghrib) totalDone++; if(pr.isha) totalDone++;
+                }
+            });
+            const rate = totalPossible > 0 ? Math.round((totalDone/totalPossible)*100) : 0;
+            const pb = document.getElementById('prayerProgress');
+            if(pb) { pb.style.width = rate+'%'; pb.innerText = rate+'%'; }
+        }
+        window.savePrayerTimes = function() {
+            appData.prayerTimes = {
+                fajr: document.getElementById('ptFajr').value, dhuhr: document.getElementById('ptDhuhr').value,
+                asr: document.getElementById('ptAsr').value, maghrib: document.getElementById('ptMaghrib').value,
+                isha: document.getElementById('ptIsha').value
+            };
+            saveData(true); showToast('নামাজের সময় সেভ হয়েছে!');
+        };
+
+        // NEW/FIXED FEATURE JS: Improved Prayer Reminder Notification Flag
+        if(!window.notifSentToday) window.notifSentToday = {};
+
+        setInterval(() => {
+            if(Notification.permission === 'granted' && appData.prayerTimes) {
+                const now = new Date();
+                const dStr = getLocalIsoDate(now);
+                
+                if(window.notifSentToday.date !== dStr) window.notifSentToday = { date: dStr };
+                const waqtBn = {fajr: 'ফজর', dhuhr: 'যোহর', asr: 'আসর', maghrib: 'মাগরিব', isha: 'এশা'};
+
+                for(let [waqt, time] of Object.entries(appData.prayerTimes)) {
+                    let [th, tm] = time.split(':').map(Number);
+                    let prayerDate = new Date(); prayerDate.setHours(th, tm, 0, 0);
+                    let diffMins = (prayerDate - now) / 60000;
+                    
+                    if(diffMins > 4 && diffMins <= 5) {
+                        if(!window.notifSentToday[waqt]) {
+                            new Notification("নামাজের প্রস্তুতি নিন", {body: `${waqtBn[waqt]} এর সময় সমাগত।`, icon: "🕌"});
+                            window.notifSentToday[waqt] = true;
+                        }
+                    }
+                    if(diffMins < -30 && diffMins >= -31) {
+                        if(!appData.prayers[dStr] || !appData.prayers[dStr][waqt]) {
+                            if(!window.notifSentToday[waqt + '_missed']) {
+                                new Notification("নামাজ মিস হয়েছে?", {body: `${waqtBn[waqt]} ওয়াক্ত চেক করুন বা কাযা আদায় করুন।`, icon: "⚠️"});
+                                window.notifSentToday[waqt + '_missed'] = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }, 60000);
+
+        window.saveRelapseAutopsy = function() {
+            appData.relapseLogs.push({
+                time: document.getElementById('rlpTime').value,
+                location: document.getElementById('rlpLocation').value,
+                trigger: document.getElementById('rlpTrigger').value,
+                feelings: document.getElementById('rlpFeelings').value,
+                lessons: document.getElementById('rlpLessons').value
+            });
+            document.getElementById('relapseModal').classList.remove('active');
+            addXP(50);
+            saveData(true); showToast('অটোপসি সেভ হয়েছে। ফিরে আসুন শক্তভাবে!');
+        };
+        window.openTriggerModal = function() { document.getElementById('triggerModal').classList.add('active'); };
+        window.saveAdvancedTrigger = function() {
+            appData.advancedTriggerLogs.push({
+                date: getSelectedDate(),
+                mood: document.getElementById('trgMood').value,
+                location: document.getElementById('trgLocation').value,
+                people: document.getElementById('trgPeople').value
+            });
+            document.getElementById('triggerModal').classList.remove('active');
+            addXP(30); saveData(true); showToast('ট্রিগার বিশ্লেষণ সেভ হয়েছে।');
+        };
+
+        document.getElementById('journalText').addEventListener('input', function(e) {
+            const val = e.target.value;
+            let emoji = '';
+            if(/(খুশি|ভালো|আনন্দ|আলহামদুলিল্লাহ|শান্তি)/.test(val)) emoji = '😄 ইতিবাচক মুড';
+            else if(/(কষ্ট|দুঃখ|একা|খারাপ|ডিপ্রেসড|কান্না)/.test(val)) emoji = '😢 হতাশাজনক মুড';
+            else if(/(টাকা|লোভ|লজ্জা|জুয়া|খেলতে|লড়াই)/.test(val)) emoji = '⚠️ ট্রিগার ওয়ার্নিং - সাবধান থাকুন!';
+            document.getElementById('journalAIResult').innerText = emoji;
+        });
+
+        window.generateJournalInsight = function() {
+            const modal = document.getElementById('insightModal');
+            const content = document.getElementById('insightContent');
+            modal.classList.add('active');
+            content.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> এআই বিশ্লেষণ করছে...';
+            
+            setTimeout(() => {
+                const dates = Object.keys(appData.journals).sort().reverse().slice(0, 7);
+                let textBlock = dates.map(d => appData.journals[d]).join(' ');
+                
+                let insight = "";
+                if(textBlock.length < 20) {
+                    insight = "পর্যাপ্ত জার্নাল ডাটা নেই। দয়া করে প্রতিদিনের অনুভূতি বিস্তারিত লিখুন।";
+                } else {
+                    let isDepressed = /(কষ্ট|খারাপ|একা|লড়াই)/.test(textBlock);
+                    let isTriggered = /(জুয়া|খেলতে|টাকা)/.test(textBlock);
+                    
+                    insight += "<strong>মুড প্যাটার্ন:</strong> আপনি গত কয়েকদিনে মিশ্র অনুভূতির মধ্য দিয়ে গেছেন। ";
+                    if(isDepressed) insight += "কয়েকটি লেখায় একাকিত্ব বা কষ্টের আভাস পাওয়া গেছে। ";
+                    
+                    insight += "<br><br><strong>ট্রিগার সতর্কতা:</strong> ";
+                    if(isTriggered) insight += "আপনার লেখায় আর্থিক বিষয় বা খেলার ইচ্ছার কথা উঠে এসেছে। এগুলো আপনার প্রধান ট্রিগার হতে পারে। ";
+                    else insight += "বড় কোনো ট্রিগার শব্দ পাওয়া যায়নি। আপনি ভালো কন্ট্রোলে আছেন। ";
+                    
+                    insight += "<br><br><strong>পরামর্শ:</strong> যখনই একা লাগবে, কোপিং স্কিল লাইব্রেরি থেকে ব্রিদিং এক্সারসাইজ করুন। রিকভারি একটি ম্যারাথন, স্প্রিন্ট নয়।";
+                }
+                content.innerHTML = insight;
+            }, 1500);
+        };
+
+        const vInput = document.getElementById('visionImageInput');
+        const vPreview = document.getElementById('visionImagePreview');
+        function renderVisionImage() {
+            if(appData.visionImage) {
+                vPreview.style.backgroundImage = `url(${appData.visionImage})`;
+                vPreview.innerText = "";
+                vPreview.style.border = "none";
+            }
+        }
+
+        // FIXED FEATURE JS: Vision Image Size Limiter (1 MB)
+        if(vInput) {
+            vInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if(file) {
+                    if(file.size > 1024 * 1024) { 
+                        showToast('ছবি ১ MB-র বেশি। দয়া করে ছোট সাইজের ছবি নির্বাচন করুন।');
+                        vInput.value = ''; 
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        appData.visionImage = evt.target.result;
+                        saveData(true);
+                        renderVisionImage();
+                        showToast('ছবি যুক্ত হয়েছে!');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // NEW/FIXED FEATURE JS: Chart Prediction Line added via overriding openAnalytics
+        const originalOpenAnalytics = openAnalytics;
+        let expTrendChart, advTrgChart;
+        openAnalytics = function() {
+            originalOpenAnalytics(); 
+            
+            const trgCounts = {};
+            appData.advancedTriggerLogs.forEach(t => trgCounts[t.mood] = (trgCounts[t.mood]||0)+1);
+            const ctxAdvT = document.getElementById('advTriggerChart').getContext('2d');
+            if(advTrgChart) advTrgChart.destroy();
+            if(Object.keys(trgCounts).length > 0) {
+                advTrgChart = new Chart(ctxAdvT, { type: 'doughnut', data: { labels: Object.keys(trgCounts), datasets: [{ data: Object.values(trgCounts), backgroundColor: ['#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'] }] }, options: { plugins: { legend: { position: 'right', labels:{color:'#fff'} } }, maintainAspectRatio: false } });
+            }
+
+            const months = {};
+            appData.expenses.forEach(e => {
+                const m = e.date.slice(0, 7);
+                months[m] = (months[m]||0) + Number(e.amount);
+            });
+            const mKeys = Object.keys(months).sort().slice(-3); 
+            const actualData = mKeys.map(k => months[k]);
+            
+            // Prediction Logic
+            let avg = 0;
+            if(actualData.length > 0) {
+                avg = actualData.reduce((a,b)=>a+b, 0) / actualData.length;
+            }
+            
+            let nextMonthLabel = "প্রেডিকশন";
+            if(mKeys.length > 0) {
+                let lastMonthStr = mKeys[mKeys.length-1];
+                let [y, m] = lastMonthStr.split('-');
+                let nd = new Date(y, parseInt(m), 1); 
+                nextMonthLabel = nd.getFullYear() + '-' + String(nd.getMonth()+1).padStart(2, '0');
+            }
+            
+            let chartLabels = [...mKeys, nextMonthLabel];
+            let chartDataActual = [...actualData, null];
+            
+            let chartDataPrediction = [];
+            for(let i=0; i<actualData.length-1; i++) chartDataPrediction.push(null);
+            
+            if(actualData.length > 0) {
+                chartDataPrediction.push(actualData[actualData.length-1]); // Connect line
+                chartDataPrediction.push(avg);
+            } else {
+                chartDataPrediction.push(avg);
+            }
+
+            const ctxTrend = document.getElementById('expenseTrendChart').getContext('2d');
+            if(expTrendChart) expTrendChart.destroy();
+            expTrendChart = new Chart(ctxTrend, { 
+                type: 'line', 
+                data: { 
+                    labels: chartLabels, 
+                    datasets: [
+                        { label: 'মোট খরচ', data: chartDataActual, borderColor: '#06b6d4', tension: 0.3, fill:true, backgroundColor:'rgba(6, 182, 212, 0.2)' },
+                        { label: 'প্রেডিকশন (গড়)', data: chartDataPrediction, borderColor: '#f59e0b', borderDash: [5, 5], tension: 0.3, fill:false }
+                    ] 
+                }, 
+                options:{ maintainAspectRatio: false } 
+            });
+
+            const calGrid = document.getElementById('moodCalendarGrid');
+            calGrid.innerHTML = '';
+            const today = new Date();
+            for(let i=29; i>=0; i--) {
+                let d = new Date(today); d.setDate(d.getDate() - i);
+                let dStr = getLocalIsoDate(d);
+                let isToday = i===0 ? 'today' : '';
+                let mood = appData.moods[dStr] || '';
+                calGrid.innerHTML += `<div class="calendar-day ${isToday}" title="${dStr}">${mood}</div>`;
+            }
+        };
+
+        renderNewFeatures();
+
+    </script>
 </body>
 </html>
