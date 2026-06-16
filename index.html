@@ -115,6 +115,9 @@
         .habit-grid .check-box { cursor: pointer; }
         .habit-grid .check-box.done { background: var(--accent); color: #000; }
         .coping-list li { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); list-style: none; display: flex; gap: 10px; align-items: center;}
+        
+        /* NEW FEATURE: High Risk Banner Animation */
+        @keyframes riskPulse { 0% { box-shadow: 0 0 10px var(--danger); } 50% { box-shadow: 0 0 30px var(--danger); } 100% { box-shadow: 0 0 10px var(--danger); } }
     </style>
 </head>
 <body>
@@ -142,6 +145,10 @@
             </div>
         </div>
     </div>
+    
+    <div id="highRiskBanner" style="display:none; margin: 0 15px; padding: 15px; border-radius: 10px; background: linear-gradient(45deg, #7f1d1d, #ef4444); color: white; text-align: center; font-weight: bold; margin-bottom: 15px; animation: riskPulse 2s infinite;">
+        <i class="fa-solid fa-triangle-exclamation"></i> এখন রাত ৭টা থেকে ১২টার ক্রিটিকাল সময়! জুয়া এবং সিগারেটের ক্রেভিং হতে পারে। নিজেকে ব্যস্ত রাখুন, মুভি দেখুন বা ঘুমিয়ে পড়ুন।
+    </div>
 
     <div class="tab-content active" id="tab-dashboard">
         <div class="hero-section">
@@ -160,6 +167,15 @@
         </div>
 
         <div class="main-grid">
+            <div class="card">
+                <h3><i class="fa-solid fa-chart-pie"></i> মাসিক আর্থিক সারসংক্ষেপ</h3>
+                <div style="height: 180px;"><canvas id="dashFinanceChart"></canvas></div>
+            </div>
+            <div class="card">
+                <h3><i class="fa-solid fa-smoking"></i> দৈনিক সিগারেট (আজকের অবস্থা)</h3>
+                <div style="height: 180px;"><canvas id="dashSmokeChart"></canvas></div>
+            </div>
+
             <div class="card" style="text-align: center;">
                 <h3><i class="fa-solid fa-face-smile"></i> আজকের মুড</h3>
                 <div class="mood-grid">
@@ -203,10 +219,12 @@
                 </div>
             </div>
 
-            <div class="card">
-                <h3><i class="fa-solid fa-smoking"></i> ধূমপান</h3>
+            <div class="card" style="border-color: var(--orange);">
+                <h3 style="color:var(--orange);"><i class="fa-solid fa-smoking"></i> ধূমপান</h3>
+                <p id="smokeMotivationQuote" style="font-size:0.9em; font-style:italic; color:var(--text2); margin-bottom:10px;">"প্রতিটি না-খাওয়া সিগারেট আপনার আয়ু বাড়াচ্ছে।"</p>
                 <div class="input-group"><input type="number" id="smokeCount" placeholder="শলাকা" value="1"><input type="number" id="smokePrice" placeholder="দাম" value="15"><button class="btn btn-orange" onclick="addSmoke()"><i class="fa-solid fa-plus"></i></button></div>
                 <p>খরচ: <strong id="todaySmokeCost">0</strong> ৳ (<strong id="todaySmokeCount">0</strong> টি)</p>
+                <button class="btn btn-danger mt-2" style="width:100%; background:var(--danger);" onclick="openSmokeSOS()"><i class="fa-solid fa-fire"></i> সিগারেট খাওয়ার ক্রেভিং হচ্ছে?</button>
             </div>
 
             <div class="card">
@@ -259,6 +277,15 @@
                 <div class="input-group"><select id="expenseCat"></select><input type="number" id="expAmount" placeholder="খরচ ৳"><button class="btn btn-red" onclick="addExpense()"><i class="fa-solid fa-minus"></i></button></div>
                 <div class="input-group"><select id="incomeCat"></select><input type="number" id="incAmount" placeholder="আয় ৳"><button class="btn btn-green" onclick="addIncome()"><i class="fa-solid fa-plus"></i></button></div>
                 <p>আজকের খরচ: <strong id="todayExpText">0</strong> ৳ | আয়: <strong id="todayIncText">0</strong> ৳</p>
+            </div>
+
+            <div class="card">
+                <h3><i class="fa-solid fa-vault"></i> বর্তমান ব্যালেন্স আপডেট</h3>
+                <p style="font-size:0.85em; color:var(--text2); margin-bottom:8px;">আপনার বর্তমান ব্যালেন্স: <strong id="currentBalanceDisplay" style="color:var(--accent); font-size:1.2em;">0</strong> ৳</p>
+                <div class="input-group">
+                    <input type="number" id="initialBalanceInput" placeholder="অ্যাকাউন্টে থাকা টাকা">
+                    <button class="btn btn-purple" onclick="updateInitialBalance()">আপডেট</button>
+                </div>
             </div>
 
             <div class="card">
@@ -394,6 +421,26 @@
 
     <div class="tab-content" id="tab-goals">
         <div class="main-grid">
+            <div class="card" style="grid-column: 1 / -1; border-color:var(--blue);">
+                <h3 style="color:var(--blue);"><i class="fa-solid fa-book-open-reader"></i> পড়াশোনার সামারি ও টাইমার</h3>
+                <div style="display:flex; gap:15px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:250px;">
+                        <textarea id="studySummaryInput" rows="3" style="width:100%;" placeholder="আজকে সারাদিন কী কী পড়লেন তার সামারি লিখুন..."></textarea>
+                        <button class="btn btn-blue mt-2" style="width:100%;" onclick="saveStudySummary()">সামারি সেভ করুন</button>
+                        <div id="studySummaryDisplay" style="margin-top:10px; font-size:0.85em; color:var(--accent);"></div>
+                    </div>
+                    <div style="flex:1; min-width:200px; text-align:center; background:var(--input-bg); border-radius:10px; padding:15px;">
+                        <h4 style="margin-bottom:10px;">স্টাডি টাইমার</h4>
+                        <div class="stopwatch" id="studyTimerDisplay" style="font-size:2em; margin:5px 0;">00:00:00</div>
+                        <div style="display:flex; justify-content:center; gap:5px;">
+                            <button class="btn btn-green" onclick="startStudyTimer()"><i class="fa-solid fa-play"></i></button>
+                            <button class="btn btn-orange" onclick="pauseStudyTimer()"><i class="fa-solid fa-pause"></i></button>
+                            <button class="btn btn-red" onclick="resetStudyTimer()"><i class="fa-solid fa-rotate-left"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card">
                 <h3><i class="fa-solid fa-bullseye"></i> শর্ট-টার্ম গোল (৩০ দিন)</h3>
                 <div class="input-group"><input type="text" id="sgInput" placeholder="নতুন গোল"><button class="btn btn-green" onclick="addGoal('short')">যোগ</button></div>
@@ -427,6 +474,20 @@
                     </div>
             </div>
 
+            <div class="card" style="border-color:var(--orange);">
+                <h3 style="color:var(--orange);"><i class="fa-solid fa-gear"></i> নোটিফিকেশন ও সেটিংস</h3>
+                <div style="margin-bottom:10px; padding:10px; background:var(--input-bg); border-radius:10px;">
+                    <div class="checklist-item"><input type="checkbox" id="toggleNotifPrayer" onchange="saveAppConfig()"> <label>নামাজের রিমাইন্ডার</label></div>
+                    <div class="checklist-item"><input type="checkbox" id="toggleNotifWater" onchange="saveAppConfig()"> <label>পানি পানের রিমাইন্ডার</label></div>
+                    <div class="checklist-item"><input type="checkbox" id="toggleNotifStudy" onchange="saveAppConfig()"> <label>পড়ার রিমাইন্ডার</label></div>
+                    <div class="input-group mt-2" style="align-items:center;">
+                        <label style="flex:1; font-size:0.9em;">পড়ার নির্দিষ্ট সময়:</label>
+                        <input type="time" id="configStudyTime" onchange="saveAppConfig()">
+                    </div>
+                </div>
+                <button class="btn btn-red" style="width:100%;" onclick="requestNotification()"><i class="fa-solid fa-bell"></i> সিস্টেম নোটিফিকেশন পারমিশন দিন</button>
+            </div>
+
             <div class="card">
                 <h3><i class="fa-solid fa-chart-line"></i> বিশ্লেষণ ও রিপোর্ট</h3>
                 <button class="btn btn-purple" style="width: 100%; margin-bottom: 10px;" onclick="openAnalytics()">বিস্তারিত চার্ট দেখুন</button>
@@ -449,7 +510,6 @@
                     <button class="btn btn-orange" style="flex: 1;" onclick="document.getElementById('uploadJson').click()">রিস্টোর</button>
                     <input type="file" id="uploadJson" accept=".json" style="display:none" onchange="uploadJSON(event)">
                 </div>
-                <button class="btn btn-red" style="width:100%;" onclick="requestNotification()"><i class="fa-solid fa-bell"></i> সিস্টেম নোটিফিকেশন চালু করুন</button>
             </div>
         </div>
     </div>
@@ -461,6 +521,21 @@
             <p>আপনি ইতিমধ্যে <strong><span id="sosStreak">0</span> দিন</strong> জুয়া থেকে দূরে আছেন। এই কষ্ট নষ্ট করবেন না। আপনার পরিবার আপনার দিকে তাকিয়ে আছে।</p>
             <p style="margin-top:10px; color:var(--text2);">আমরা ৫ মিনিট পর আপনাকে একটি নোটিফিকেশন পাঠাবো। ততক্ষণ দীর্ঘশ্বাস নিন।</p>
             <button class="btn btn-green" style="margin-top: 20px; font-size: 1.2em; width:100%;" onclick="closeSOS()">আমি পারবো, আমি খেলবো না!</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="smokeSosModal">
+        <div class="modal" style="text-align: center;">
+            <span style="font-size: 4em;">🚭</span>
+            <h2 style="color: var(--orange);">সিগারেটের ক্রেভিং হচ্ছে?</h2>
+            <p style="font-size:1.1em; font-weight:bold;">ক্রেভিং সাধারণত মাত্র ৫-১০ মিনিট স্থায়ী হয়।</p>
+            <ul style="text-align:left; color:var(--text2); font-size:0.9em; margin:15px auto; width:80%;">
+                <li>১. বড় করে ৩ বার শ্বাস নিন।</li>
+                <li>২. এক গ্লাস ঠান্ডা পানি ধীরে ধীরে পান করুন।</li>
+                <li>৩. নিজের জায়গা থেকে উঠে ৫ মিনিট হাঁটুন।</li>
+            </ul>
+            <p style="color:var(--accent);">আপনি পারবেন! একটা সাময়িক ইচ্ছে আপনার সব অর্জন নষ্ট করতে পারে না।</p>
+            <button class="btn btn-orange" style="margin-top: 20px; font-size: 1.2em; width:100%;" onclick="document.getElementById('smokeSosModal').classList.remove('active')">আমি নিজেকে কন্ট্রোল করেছি!</button>
         </div>
     </div>
 
@@ -584,6 +659,15 @@
             "ভুল থেকে শিক্ষা নেওয়াই বুদ্ধিমানের কাজ।", "সাময়িক উত্তেজনার জন্য স্থায়ী শান্তি নষ্ট করবেন না।", "আপনি একা নন, এই যুদ্ধে আমরা সাথে আছি।"
         ];
 
+        // NEW FEATURE JS: Array of Motivational Quotes for Quitting Smoking
+        const smokeQuotesLib = [
+            "প্রতিটি না-খাওয়া সিগারেট আপনার আয়ু বাড়াচ্ছে।",
+            "সিগারেট আপনাকে নয়, আপনি সিগারেটকে নিয়ন্ত্রণ করুন।",
+            "আজকের একটি 'না' আপনার আগামীকালের স্বাস্থ্য নিশ্চিত করবে।",
+            "ধোঁয়ায় উড়ানো টাকাগুলো সঞ্চয় করুন, ভবিষ্যৎ সুন্দর হবে।",
+            "আপনার ফুসফুসকে পরিষ্কার বাতাস উপহার দিন।"
+        ];
+
         const duasLib = [
             "রাব্বানা আতিনা ফিদ দুনিয়া হাসানাতাও ওয়াফিল আখিরাতি হাসানাতাও ওয়াকিনা আজাবান নার।",
             "লা ইলাহা ইল্লা আনতা সুবহানাকা ইন্নি কুনতু মিনাজ জোয়ালিমিন।",
@@ -634,12 +718,7 @@
         applyTheme(localStorage.getItem('appTheme'));
 
         function requestNotification() {
-            if('Notification' in window) { Notification.requestPermission().then(p => { if(p==='granted') { showToast('নোটিফিকেশন চালু হয়েছে!'); scheduleNotifs(); } }); }
-        }
-        function scheduleNotifs() {
-            if(Notification.permission === 'granted') {
-                setInterval(() => { new Notification("পানি পানের সময়!", {body:"এক গ্লাস পানি পান করুন।", icon:"💧"}); }, 3600000);
-            }
+            if('Notification' in window) { Notification.requestPermission().then(p => { if(p==='granted') { showToast('নোটিফিকেশন চালু হয়েছে!'); } }); }
         }
 
         function addXP(amount) {
@@ -803,6 +882,10 @@
         // ==========================================
 
         function initNewFeaturesData() {
+            if(appData.initialBalance === undefined) appData.initialBalance = 0; // NEW FEATURE JS: For current balance
+            if(!appData.appConfig) appData.appConfig = { notifPrayer: true, notifWater: true, notifStudy: true, studyTime: "20:00" }; // NEW FEATURE JS
+            if(!appData.studySummaries) appData.studySummaries = {}; // NEW FEATURE JS
+
             if(!appData.prayerTimes) appData.prayerTimes = {fajr:"04:30", dhuhr:"13:00", asr:"16:30", maghrib:"18:30", isha:"20:00"};
             if(!appData.bmiHistory) appData.bmiHistory = [];
             if(!appData.habitsStack) appData.habitsStack = [];
@@ -837,6 +920,34 @@
             renderHabitStack();
             renderPrayerTimes();
             renderVisionImage();
+
+            // NEW FEATURE JS: Update Current Balance UI
+            let totalIn = appData.incomes.reduce((a,b)=>a+Number(b.amount),0);
+            let totalEx = appData.expenses.reduce((a,b)=>a+Number(b.amount),0);
+            let cBal = Number(appData.initialBalance) + totalIn - totalEx;
+            const balDisp = document.getElementById('currentBalanceDisplay');
+            if(balDisp) balDisp.innerText = formatMoney(cBal);
+
+            // NEW FEATURE JS: Render Dashboard Charts
+            renderDashboardCharts(cBal);
+
+            // NEW FEATURE JS: Render Study Summary and Motivation
+            const dStr = getSelectedDate();
+            const sumDisp = document.getElementById('studySummaryDisplay');
+            if(sumDisp) sumDisp.innerText = appData.studySummaries[dStr] ? `আজকের সামারি: ${appData.studySummaries[dStr]}` : "আজকের কোনো সামারি সেভ করা হয়নি।";
+            
+            const sQuote = document.getElementById('smokeMotivationQuote');
+            if(sQuote) sQuote.innerText = `"${smokeQuotesLib[Math.floor(Math.random()*smokeQuotesLib.length)]}"`;
+
+            // NEW FEATURE JS: Render App Config Settings
+            const cfg = appData.appConfig;
+            if(document.getElementById('toggleNotifPrayer')) document.getElementById('toggleNotifPrayer').checked = cfg.notifPrayer;
+            if(document.getElementById('toggleNotifWater')) document.getElementById('toggleNotifWater').checked = cfg.notifWater;
+            if(document.getElementById('toggleNotifStudy')) document.getElementById('toggleNotifStudy').checked = cfg.notifStudy;
+            if(document.getElementById('configStudyTime')) document.getElementById('configStudyTime').value = cfg.studyTime;
+
+            // NEW FEATURE JS: High Risk Banner Checker (7 PM - 12 AM)
+            checkHighRiskWindow();
         }
 
         const originalCalcBMI = calcBMI;
@@ -895,7 +1006,6 @@
             }
         };
 
-        // NEW/FIXED FEATURE JS: Improved Habit Tracking Grid (Dropdown for 7/21/66 days & Emojis)
         function renderHabitStack() {
             const container = document.getElementById('habitStackContainer');
             if(!container) return;
@@ -957,7 +1067,6 @@
             }
         };
 
-        // NEW FEATURE JS: Future Value Calculation Logic
         window.calculateFV = function() {
             const initial = parseFloat(document.getElementById('fvInitial').value) || 0;
             const pmt = parseFloat(document.getElementById('fvMonthly').value) || 0;
@@ -1011,34 +1120,52 @@
             saveData(true); showToast('নামাজের সময় সেভ হয়েছে!');
         };
 
-        // NEW/FIXED FEATURE JS: Improved Prayer Reminder Notification Flag
         if(!window.notifSentToday) window.notifSentToday = {};
 
+        // NEW FEATURE JS: Advanced Notifications logic using setInterval
         setInterval(() => {
-            if(Notification.permission === 'granted' && appData.prayerTimes) {
-                const now = new Date();
-                const dStr = getLocalIsoDate(now);
-                
+            const now = new Date();
+            const dStr = getLocalIsoDate(now);
+            const currentHour = now.getHours();
+            
+            // Recheck High Risk Window
+            checkHighRiskWindow(currentHour);
+
+            if(Notification.permission === 'granted') {
                 if(window.notifSentToday.date !== dStr) window.notifSentToday = { date: dStr };
                 const waqtBn = {fajr: 'ফজর', dhuhr: 'যোহর', asr: 'আসর', maghrib: 'মাগরিব', isha: 'এশা'};
 
-                for(let [waqt, time] of Object.entries(appData.prayerTimes)) {
-                    let [th, tm] = time.split(':').map(Number);
-                    let prayerDate = new Date(); prayerDate.setHours(th, tm, 0, 0);
-                    let diffMins = (prayerDate - now) / 60000;
-                    
-                    if(diffMins > 4 && diffMins <= 5) {
-                        if(!window.notifSentToday[waqt]) {
-                            new Notification("নামাজের প্রস্তুতি নিন", {body: `${waqtBn[waqt]} এর সময় সমাগত।`, icon: "🕌"});
-                            window.notifSentToday[waqt] = true;
+                // Prayer Notifs
+                if(appData.appConfig.notifPrayer && appData.prayerTimes) {
+                    for(let [waqt, time] of Object.entries(appData.prayerTimes)) {
+                        let [th, tm] = time.split(':').map(Number);
+                        let prayerDate = new Date(); prayerDate.setHours(th, tm, 0, 0);
+                        let diffMins = (prayerDate - now) / 60000;
+                        
+                        if(diffMins > 4 && diffMins <= 5) {
+                            if(!window.notifSentToday[waqt]) {
+                                new Notification("নামাজের প্রস্তুতি নিন", {body: `${waqtBn[waqt]} এর সময় সমাগত।`, icon: "🕌"});
+                                window.notifSentToday[waqt] = true;
+                            }
+                        }
+                        if(diffMins < -30 && diffMins >= -31) {
+                            if(!appData.prayers[dStr] || !appData.prayers[dStr][waqt]) {
+                                if(!window.notifSentToday[waqt + '_missed']) {
+                                    new Notification("নামাজ মিস হয়েছে?", {body: `${waqtBn[waqt]} ওয়াক্ত চেক করুন বা কাযা আদায় করুন।`, icon: "⚠️"});
+                                    window.notifSentToday[waqt + '_missed'] = true;
+                                }
+                            }
                         }
                     }
-                    if(diffMins < -30 && diffMins >= -31) {
-                        if(!appData.prayers[dStr] || !appData.prayers[dStr][waqt]) {
-                            if(!window.notifSentToday[waqt + '_missed']) {
-                                new Notification("নামাজ মিস হয়েছে?", {body: `${waqtBn[waqt]} ওয়াক্ত চেক করুন বা কাযা আদায় করুন।`, icon: "⚠️"});
-                                window.notifSentToday[waqt + '_missed'] = true;
-                            }
+                }
+
+                // Study Notifs
+                if(appData.appConfig.notifStudy && appData.appConfig.studyTime) {
+                    let [sh, sm] = appData.appConfig.studyTime.split(':').map(Number);
+                    if(now.getHours() === sh && now.getMinutes() === sm) {
+                        if(!window.notifSentToday.study) {
+                            new Notification("পড়ার সময় হয়েছে!", {body: "বই নিয়ে বসে পড়ুন। আপনার লক্ষ্য আপনার জন্য অপেক্ষা করছে।", icon: "📖"});
+                            window.notifSentToday.study = true;
                         }
                     }
                 }
@@ -1118,7 +1245,6 @@
             }
         }
 
-        // FIXED FEATURE JS: Vision Image Size Limiter (1 MB)
         if(vInput) {
             vInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
@@ -1140,7 +1266,6 @@
             });
         }
 
-        // NEW/FIXED FEATURE JS: Chart Prediction Line added via overriding openAnalytics
         const originalOpenAnalytics = openAnalytics;
         let expTrendChart, advTrgChart;
         openAnalytics = function() {
@@ -1162,7 +1287,6 @@
             const mKeys = Object.keys(months).sort().slice(-3); 
             const actualData = mKeys.map(k => months[k]);
             
-            // Prediction Logic
             let avg = 0;
             if(actualData.length > 0) {
                 avg = actualData.reduce((a,b)=>a+b, 0) / actualData.length;
@@ -1183,7 +1307,7 @@
             for(let i=0; i<actualData.length-1; i++) chartDataPrediction.push(null);
             
             if(actualData.length > 0) {
-                chartDataPrediction.push(actualData[actualData.length-1]); // Connect line
+                chartDataPrediction.push(actualData[actualData.length-1]); 
                 chartDataPrediction.push(avg);
             } else {
                 chartDataPrediction.push(avg);
@@ -1213,6 +1337,110 @@
                 let mood = appData.moods[dStr] || '';
                 calGrid.innerHTML += `<div class="calendar-day ${isToday}" title="${dStr}">${mood}</div>`;
             }
+        };
+
+        // ==========================================
+        // NEW FEATURE JS: Added Dashboard Donut Charts, Settings & Study Timer
+        // ==========================================
+        
+        let dashFinChartInst, dashSmkChartInst;
+        
+        function renderDashboardCharts(currentBal) {
+            // Finance Chart (Monthly)
+            const d = getSelectedDate(); const month = d.slice(0, 7);
+            const mInc = appData.incomes.filter(i => i.date.startsWith(month)).reduce((a,b)=>a+Number(b.amount),0);
+            const mExp = appData.expenses.filter(e => e.date.startsWith(month)).reduce((a,b)=>a+Number(b.amount),0);
+            
+            const cFin = document.getElementById('dashFinanceChart');
+            if(cFin) {
+                const ctxFin = cFin.getContext('2d');
+                if(dashFinChartInst) dashFinChartInst.destroy();
+                dashFinChartInst = new Chart(ctxFin, { 
+                    type: 'doughnut', 
+                    data: { labels: ['মাসিক আয়', 'মাসিক খরচ', 'বর্তমান ব্যালেন্স'], datasets: [{ data: [mInc, mExp, Math.max(0, currentBal)], backgroundColor: ['#10b981', '#ef4444', '#3b82f6'] }] }, 
+                    options: { plugins: { legend: { position: 'right', labels:{color:'#fff'} } }, maintainAspectRatio: false, cutout: '60%' } 
+                });
+            }
+
+            // Smoke Chart (Today's smoked vs Goal)
+            const tSmokes = appData.smokes.filter(s => s.date === d).reduce((a,b)=>a+Number(b.count), 0);
+            const cSmk = document.getElementById('dashSmokeChart');
+            if(cSmk) {
+                const ctxSmk = cSmk.getContext('2d');
+                if(dashSmkChartInst) dashSmkChartInst.destroy();
+                // Assume default limit is 5 for chart visualization if not set
+                const limit = 5; 
+                const remaining = Math.max(0, limit - tSmokes);
+                dashSmkChartInst = new Chart(ctxSmk, { 
+                    type: 'doughnut', 
+                    data: { labels: ['আজকের খাওয়া', 'বাকি লিমিট'], datasets: [{ data: [tSmokes, remaining], backgroundColor: ['#ef4444', '#334155'] }] }, 
+                    options: { plugins: { legend: { position: 'right', labels:{color:'#fff'} } }, maintainAspectRatio: false, cutout: '70%' } 
+                });
+            }
+        }
+
+        window.updateInitialBalance = function() {
+            const val = document.getElementById('initialBalanceInput').value;
+            if(val !== "") {
+                appData.initialBalance = Number(val);
+                saveData(true);
+                document.getElementById('initialBalanceInput').value = '';
+                showToast('প্রাথমিক ব্যালেন্স আপডেট হয়েছে!');
+            }
+        };
+
+        window.openSmokeSOS = function() {
+            document.getElementById('smokeSosModal').classList.add('active');
+        };
+
+        window.saveStudySummary = function() {
+            const text = document.getElementById('studySummaryInput').value;
+            if(text) {
+                appData.studySummaries[getSelectedDate()] = text;
+                addXP(15);
+                saveData(true);
+                document.getElementById('studySummaryInput').value = '';
+                showToast('পড়াশোনার সামারি সেভ হয়েছে! +15 XP');
+            }
+        };
+
+        window.saveAppConfig = function() {
+            appData.appConfig = {
+                notifPrayer: document.getElementById('toggleNotifPrayer').checked,
+                notifWater: document.getElementById('toggleNotifWater').checked,
+                notifStudy: document.getElementById('toggleNotifStudy').checked,
+                studyTime: document.getElementById('configStudyTime').value || "20:00"
+            };
+            saveData(true); showToast('সেটিংস সেভ হয়েছে!');
+        };
+
+        function checkHighRiskWindow(hourOpt) {
+            const h = hourOpt !== undefined ? hourOpt : new Date().getHours();
+            const banner = document.getElementById('highRiskBanner');
+            if(banner) {
+                if(h >= 19 && h <= 23) banner.style.display = "block"; // 7 PM to 11:59 PM
+                else banner.style.display = "none";
+            }
+        }
+
+        // Study Timer Logic
+        let studyTimerInt, studySeconds = 0, studyRunning = false;
+        function updateStudyTimerDisp() {
+            const h = Math.floor(studySeconds / 3600);
+            const m = Math.floor((studySeconds % 3600) / 60);
+            const s = studySeconds % 60;
+            document.getElementById('studyTimerDisplay').innerText = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+        }
+        window.startStudyTimer = function() {
+            if(studyRunning) return; studyRunning = true;
+            studyTimerInt = setInterval(() => { studySeconds++; updateStudyTimerDisp(); }, 1000);
+        };
+        window.pauseStudyTimer = function() {
+            clearInterval(studyTimerInt); studyRunning = false;
+        };
+        window.resetStudyTimer = function() {
+            clearInterval(studyTimerInt); studyRunning = false;
+            studySeconds = 0; updateStudyTimerDisp();
         };
 
         renderNewFeatures();
