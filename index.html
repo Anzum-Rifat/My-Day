@@ -866,7 +866,6 @@
         
         firebase.initializeApp(firebaseConfig);  
         
-        // FIXED FEATURE: Auth is fully removed. Using Realtime Database only.
         const db = firebase.database(); 
         const dbRef = db.ref('recovery_dashboard/my_shared_data'); 
 
@@ -877,7 +876,39 @@
             incCats: ['টিউশনি', 'বৃত্তি', 'দাওয়াত', 'অন্যান্য'], expCats: ['খাওয়া-দাওয়া', 'যাতায়াত', 'পড়াশোনা', 'মোবাইল/ইন্টারনেট', 'বিনোদন', 'অন্যান্য']
         };
 
-        let appData = JSON.parse(localStorage.getItem('recoveryAppData')) || JSON.parse(JSON.stringify(defaultData));
+        // NEW/FIXED FEATURE: Safe Data Sanitization prevents arrays from becoming objects and wiping data
+        function sanitizeData(data) {
+            if (!data) return JSON.parse(JSON.stringify(defaultData));
+            let merged = { ...defaultData, ...data };
+            
+            // Reconstruct Arrays strictly to prevent crash
+            const allArrayFields = [
+                'expenses', 'incomes', 'smokes', 'urges', 'quran', 'dhikr', 'exercises', 'sleep', 
+                'incCats', 'expCats', 'payments', 'badges', 'challenges', 'recurring', 
+                'customIncomeCategories', 'customExpenseCategories', 'timeLogs', 'meditationLogs',
+                'bmiHistory', 'habitsStack', 'dailyChallenges', 'relapseLogs', 'advancedTriggerLogs'
+            ];
+            allArrayFields.forEach(f => {
+                if (!merged[f]) merged[f] = [];
+                else if (!Array.isArray(merged[f])) merged[f] = Object.values(merged[f]);
+            });
+            
+            if(!merged.goals) merged.goals = { short: [], long: [] };
+            if(!merged.goals.short) merged.goals.short = [];
+            else if(!Array.isArray(merged.goals.short)) merged.goals.short = Object.values(merged.goals.short);
+            if(!merged.goals.long) merged.goals.long = [];
+            else if(!Array.isArray(merged.goals.long)) merged.goals.long = Object.values(merged.goals.long);
+            
+            if(!merged.prayerTimes) merged.prayerTimes = {fajr:"04:30", dhuhr:"13:00", asr:"16:30", maghrib:"18:30", isha:"20:00"};
+            if(!merged.appConfig) merged.appConfig = { notifPrayer: true, notifWater: true, notifStudy: true, studyTime: "20:00" };
+            if(!merged.studySummaries) merged.studySummaries = {};
+            if(merged.initialBalance === undefined) merged.initialBalance = 0;
+            if(!merged.visionImage) merged.visionImage = "";
+            
+            return merged;
+        }
+
+        let appData = sanitizeData(JSON.parse(localStorage.getItem('recoveryAppData')));
 
         const quotesLib = [
             "অন্ধকার যতই গভীর হোক, ভোর আসবেই।", "জুয়া আপনাকে ধনী করবে না, এটি আপনাকে নিঃস্ব করবে।", "আজকের কষ্ট আগামীকালের শক্তি।",
@@ -913,10 +944,8 @@
         let isSavingToFirebase = false;
 
         function saveData(silent = false) {
-            const arrFields = ['expenses', 'incomes', 'smokes', 'urges', 'quran', 'dhikr', 'exercises', 'sleep', 'incCats', 'expCats'];
-            arrFields.forEach(f => { if(!Array.isArray(appData[f])) appData[f] = Object.values(appData[f] || {}); });
-            if(!appData.goals) appData.goals = {short:[], long:[]};
-            
+            // NEW/FIXED FEATURE: Ensure data is thoroughly sanitized to prevent DB wipe
+            appData = sanitizeData(appData);
             localStorage.setItem('recoveryAppData', JSON.stringify(appData));
             
             if (navigator.onLine && dbRef) {
@@ -934,26 +963,13 @@
             if(!silent) renderAll();
         }
 
-        // FIXED FEATURE: Initialize Data from Firebase without Auth
-        if (navigator.onLine) {
-            dbRef.once('value').then(snap => { 
-                if (snap.exists()) { 
-                    appData = { ...defaultData, ...snap.val() }; 
-                    localStorage.setItem('recoveryAppData', JSON.stringify(appData));
-                    initNewFeaturesData(); 
-                    renderAll(); 
-                    document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:var(--accent)"></i> সিঙ্কড';
-                } 
-            }).catch(err => console.error("DB Error:", err));
-        }
-
-        // FIXED FEATURE: Real-time listener keeps multiple devices in sync automatically
+        // NEW/FIXED FEATURE: Only update local state if snap exists and is not currently saving
         dbRef.on('value', (snap) => {
             if(isSavingToFirebase) return; 
             if (snap.exists()) {
-                appData = { ...defaultData, ...snap.val() };
+                appData = sanitizeData(snap.val());
                 localStorage.setItem('recoveryAppData', JSON.stringify(appData));
-                initNewFeaturesData();
+                initNewFeaturesData(false); // Do not autosave on DB update
                 renderAll();
                 document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-rotate" style="color:var(--blue)"></i> রিয়েল-টাইম আপডেটেড';
             }
@@ -1253,7 +1269,7 @@
         // Data Initialization & Extra Logic
         // ==========================================
 
-        function initNewFeaturesData() {
+        function initNewFeaturesData(allowSave = true) {
             if(appData.initialBalance === undefined) appData.initialBalance = 0; 
             if(!appData.appConfig) appData.appConfig = { notifPrayer: true, notifWater: true, notifStudy: true, studyTime: "20:00" }; 
             if(!appData.studySummaries) appData.studySummaries = {}; 
@@ -1266,6 +1282,7 @@
             if(!appData.advancedTriggerLogs) appData.advancedTriggerLogs = [];
             if(!appData.visionImage) appData.visionImage = "";
             
+            // FIXED FEATURE: Prevent auto-save overriding DB on page load
             const today = getLocalIsoDate(new Date());
             if(!appData.challengeDate || appData.challengeDate !== today) {
                 appData.challengeDate = today;
@@ -1275,10 +1292,11 @@
                     const rnd = templates[Math.floor(Math.random()*templates.length)];
                     appData.dailyChallenges.push({text: rnd, done: false});
                 }
-                saveData(true);
+                if(allowSave) saveData(true);
             }
         }
-        initNewFeaturesData();
+        
+        initNewFeaturesData(false);
 
         function renderNewFeatures() {
             renderBMIHistory();
@@ -1706,8 +1724,10 @@
             clearInterval(studyTimerInt); studyRunning = false;
             studySeconds = 0; updateStudyTimerDisp();
         };
-
+        
+        // =====================================
         // Initialize display immediately
+        // =====================================
         renderAll();
 
     </script>
