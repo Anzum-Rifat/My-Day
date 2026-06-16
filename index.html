@@ -324,106 +324,6 @@
 
         .mt-2 { margin-top: 10px; }
 
-        /* NEW FEATURE CSS: Routine Tracker Styling embedded to match Dark/Light Themes smoothly */
-        .rt-tracker-container {
-            width: 100%;
-        }
-        .rt-tracker-header {
-            text-align: center;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-        .rt-tracker-header h2 {
-            color: var(--accent);
-            margin: 0 0 10px 0;
-            font-size: 1.2em;
-        }
-        .rt-date-selector {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .rt-date-selector input[type="date"] {
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background: var(--input-bg);
-            color: var(--text);
-            outline: none;
-        }
-        .rt-date-selector input[type="date"]:focus { border-color: var(--accent); }
-        
-        .rt-add-task-form {
-            background: var(--input-bg);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            border: 1px solid var(--border);
-        }
-        .rt-input-time { flex: 1; min-width: 120px; }
-        .rt-input-desc { flex: 3; min-width: 200px; }
-        
-        .rt-routine-type-title {
-            font-size: 1em;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 15px;
-            text-align: center;
-            padding-top: 10px;
-            border-top: 1px dashed var(--border);
-        }
-        .rt-task-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .rt-task-card {
-            display: flex;
-            align-items: flex-start;
-            padding: 15px;
-            background: var(--input-bg);
-            border-radius: 8px;
-            border-left: 4px solid var(--blue);
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        .rt-task-card.rt-custom-task { border-left-color: var(--accent); }
-        .rt-task-card.rt-highlight { border-left-color: var(--warning); border-right: 1px solid var(--warning); }
-        .rt-task-card.rt-completed { background: var(--bg); border-left-color: var(--text2); opacity: 0.7; }
-        
-        .rt-task-checkbox {
-            width: 22px;
-            height: 22px;
-            margin-right: 15px;
-            margin-top: 2px;
-            cursor: pointer;
-            accent-color: var(--accent);
-        }
-        .rt-task-content { flex: 1; padding-right: 30px; }
-        .rt-task-time { font-size: 0.85em; color: var(--text2); font-weight: 600; margin-bottom: 4px; display: block; }
-        .rt-task-desc { font-size: 0.95em; color: var(--text); line-height: 1.4; }
-        .rt-task-card.rt-completed .rt-task-desc { text-decoration: line-through; color: var(--text2); }
-        
-        .rt-delete-btn {
-            background: none;
-            border: none;
-            color: var(--danger);
-            cursor: pointer;
-            font-size: 16px;
-            position: absolute;
-            right: 15px;
-            top: 15px;
-            padding: 5px;
-        }
-        .rt-delete-btn:hover { opacity: 0.8; }
-        .rt-no-task-msg { text-align: center; color: var(--text2); font-style: italic; padding: 20px; }
-
         @media (max-width: 768px) {
             .main-grid { grid-template-columns: 1fr; gap: 12px; padding: 10px; }
             .hero-section { flex-direction: column; gap: 12px; padding: 10px; }
@@ -702,29 +602,6 @@
 
     <div class="tab-content" id="tab-toolkit">
         <div class="main-grid">
-            
-            <div class="card" style="grid-column: 1 / -1; padding:0; overflow:hidden;">
-                <div class="rt-tracker-container">
-                    <div class="rt-tracker-header">
-                        <h2>📅 স্টাডি ও পার্সোনাল রুটিন ট্র্যাকার</h2>
-                        <div class="rt-date-selector">
-                            <label for="routineDateEl"><strong>তারিখ নির্বাচন:</strong></label>
-                            <input type="date" id="routineDateEl">
-                        </div>
-                    </div>
-
-                    <div class="rt-add-task-form">
-                        <input type="text" id="rtCustomTime" class="rt-input-time" placeholder="সময় (যেমন: সন্ধ্যা ৭টা)">
-                        <input type="text" id="rtCustomDesc" class="rt-input-desc" placeholder="কী করবেন? (যেমন: AmarJU আপডেট করা, GIS প্রজেক্ট গোছানো)">
-                        <button id="rtAddTaskBtn" class="btn btn-blue" style="flex: 1; min-width: 100px;">+ যুক্ত করুন</button>
-                    </div>
-                    
-                    <div id="rtRoutineTitle" class="rt-routine-type-title">রুটিন লোড হচ্ছে...</div>
-                    <div id="rtTaskList" class="rt-task-list">
-                    </div>
-                </div>
-            </div>
-
             <div class="card" style="text-align:center;">
                 <h3><i class="fa-solid fa-wind"></i> 4-7-8 ব্রিদিং মেডিটেশন</h3>
                 <p class="text-sm">৪ সেকেন্ড শ্বাস নিন, ৭ সেকেন্ড ধরে রাখুন, ৮ সেকেন্ড ছাড়ুন</p>
@@ -766,10 +643,10 @@
     <div class="tab-content" id="tab-goals">
         <div class="main-grid">
             <div class="card" style="grid-column: 1 / -1; border-color:var(--blue);">
-                <h3 style="color:var(--blue);"><i class="fa-solid fa-book-open-reader"></i> পড়াশোনার সামারি ও টাইমার</h3>
+                <h3 style="color:var(--blue);"><i class="fa-solid fa-book-open-reader"></i> পড়াশোনার সামারি ও টাইমার</h3>
                 <div style="display:flex; gap:15px; flex-wrap:wrap;">
                     <div style="flex:1; min-width:250px;">
-                        <textarea id="studySummaryInput" rows="3" style="width:100%;" placeholder="আজকে সারাদিন কী কী পড়লেন তার সামারি লিখুন..."></textarea>
+                        <textarea id="studySummaryInput" rows="3" style="width:100%;" placeholder="আজকে সারাদিন কী কী পড়লেন তার সামারি লিখুন..."></textarea>
                         <button class="btn btn-blue mt-2" style="width:100%;" onclick="saveStudySummary()">সামারি সেভ করুন</button>
                         <div id="studySummaryDisplay" style="margin-top:10px; font-size:0.85em; color:var(--accent);"></div>
                     </div>
@@ -842,7 +719,7 @@
 
             <div class="card">
                 <h3><i class="fa-solid fa-lightbulb"></i> এআই সাপ্তাহিক ইনসাইট</h3>
-                <p style="font-size:0.85em; color:var(--text2); margin-bottom:10px;">আপনার গত ৭ দিনের জার্নাল বিশ্লেষণ করে এআই একটি রিপোর্ট তৈরি করবে.</p>
+                <p style="font-size:0.85em; color:var(--text2); margin-bottom:10px;">আপনার গত ৭ দিনের জার্নাল বিশ্লেষণ করে এআই একটি রিপোর্ট তৈরি করবে।</p>
                 <button class="btn btn-pink" style="width:100%;" onclick="generateJournalInsight()"><i class="fa-solid fa-wand-magic-sparkles"></i> ইনসাইট তৈরি করুন</button>
             </div>
             
@@ -999,10 +876,12 @@
             incCats: ['টিউশনি', 'বৃত্তি', 'দাওয়াত', 'অন্যান্য'], expCats: ['খাওয়া-দাওয়া', 'যাতায়াত', 'পড়াশোনা', 'মোবাইল/ইন্টারনেট', 'বিনোদন', 'অন্যান্য']
         };
 
+        // NEW/FIXED FEATURE: Safe Data Sanitization prevents arrays from becoming objects and wiping data
         function sanitizeData(data) {
             if (!data) return JSON.parse(JSON.stringify(defaultData));
             let merged = { ...defaultData, ...data };
             
+            // Reconstruct Arrays strictly to prevent crash
             const allArrayFields = [
                 'expenses', 'incomes', 'smokes', 'urges', 'quran', 'dhikr', 'exercises', 'sleep', 
                 'incCats', 'expCats', 'payments', 'badges', 'challenges', 'recurring', 
@@ -1065,6 +944,7 @@
         let isSavingToFirebase = false;
 
         function saveData(silent = false) {
+            // NEW/FIXED FEATURE: Ensure data is thoroughly sanitized to prevent DB wipe
             appData = sanitizeData(appData);
             localStorage.setItem('recoveryAppData', JSON.stringify(appData));
             
@@ -1083,24 +963,13 @@
             if(!silent) renderAll();
         }
 
-        if (navigator.onLine) {
-            dbRef.once('value').then(snap => { 
-                if (snap.exists()) { 
-                    appData = sanitizeData(snap.val());
-                    localStorage.setItem('recoveryAppData', JSON.stringify(appData));
-                    initNewFeaturesData(false); 
-                    renderAll(); 
-                    document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:var(--accent)"></i> সিঙ্কড';
-                } 
-            }).catch(err => console.error("DB Error:", err));
-        }
-
+        // NEW/FIXED FEATURE: Only update local state if snap exists and is not currently saving
         dbRef.on('value', (snap) => {
             if(isSavingToFirebase) return; 
             if (snap.exists()) {
                 appData = sanitizeData(snap.val());
                 localStorage.setItem('recoveryAppData', JSON.stringify(appData));
-                initNewFeaturesData(false); 
+                initNewFeaturesData(false); // Do not autosave on DB update
                 renderAll();
                 document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-rotate" style="color:var(--blue)"></i> রিয়েল-টাইম আপডেটেড';
             }
@@ -1111,7 +980,6 @@
         function onDateChange() { 
             updateAllUIs();
             processRecurring(); 
-            routineLoadRoutineForDate(document.getElementById('routineDateEl').value);
         }
 
         /* ==========================================
@@ -1145,7 +1013,7 @@
                     if(p==='granted') { 
                         showToast('নোটিফিকেশন চালু হয়েছে!'); 
                     } else {
-                        showToast('নোটিফিকেশন পারমিশন দেওয়া হয়নি!');
+                        showToast('নোটিফিকেশন পারমিশন দেওয়া হয়নি!');
                     }
                 }); 
             } else {
@@ -1164,7 +1032,7 @@
            3. UI Rendering
            ========================================== */
         function updateAllUIs() {
-            if(!appData) return;
+            if(!localData) return;
         }
 
         function renderAll() {
@@ -1271,7 +1139,7 @@
         function closeSOS() {
             document.getElementById('sosModal').classList.remove('active');
             showToast('৫ মিনিট পর আমরা নোটিফিকেশন পাঠাবো।');
-            if('Notification' in window && Notification.permission==='granted') setTimeout(()=>{ new Notification("আপনি পেরেছেন!", {body:"৫ মিনিট পার হয়েছে। জুয়া না খেলে আপনি আজ জিতেছেন!", icon:"🏆"}); }, 300000);
+            if(Notification.permission==='granted') setTimeout(()=>{ new Notification("আপনি পেরেছেন!", {body:"৫ মিনিট পার হয়েছে। জুয়া না খেলে আপনি আজ জিতেছেন!", icon:"🏆"}); }, 300000);
         }
 
         function changeQuote() { document.getElementById('dailyQuote').innerText = `"${quotesLib[Math.floor(Math.random()*quotesLib.length)]}"`; }
@@ -1303,7 +1171,7 @@
 
         function processRecurring() { }
 
-        let exChart, urChart, advTrgChart, expTrendChart;
+        let exChart, urChart;
         function openAnalytics() {
             document.getElementById('analyticsModal').classList.add('active');
             const cats = {}; appData.expenses.forEach(e => cats[e.category] = (cats[e.category]||0) + Number(e.amount));
@@ -1414,6 +1282,7 @@
             if(!appData.advancedTriggerLogs) appData.advancedTriggerLogs = [];
             if(!appData.visionImage) appData.visionImage = "";
             
+            // FIXED FEATURE: Prevent auto-save overriding DB on page load
             const today = getLocalIsoDate(new Date());
             if(!appData.challengeDate || appData.challengeDate !== today) {
                 appData.challengeDate = today;
@@ -1426,6 +1295,8 @@
                 if(allowSave) saveData(true);
             }
         }
+        
+        initNewFeaturesData(false);
 
         function renderNewFeatures() {
             renderBMIHistory();
@@ -1456,9 +1327,6 @@
             if(document.getElementById('configStudyTime')) document.getElementById('configStudyTime').value = cfg.studyTime;
 
             checkHighRiskWindow();
-            
-            // NEW FEATURE CALL
-            routineLoadRoutineForDate(document.getElementById('routineDateEl').value || getLocalIsoDate(new Date()));
         }
 
         function renderBMIHistory() {
@@ -1658,7 +1526,7 @@
                     let [sh, sm] = appData.appConfig.studyTime.split(':').map(Number);
                     if(now.getHours() === sh && now.getMinutes() === sm) {
                         if(!window.notifSentToday.study) {
-                            new Notification("পড়ার সময় হয়েছে!", {body: "বই নিয়ে বসে পড়ুন। আপনার লক্ষ্য আপনার জন্য অপেক্ষা করছে।", icon: "📖"});
+                            new Notification("পড়ার সময় হয়েছে!", {body: "বই নিয়ে বসে পড়ুন। আপনার লক্ষ্য আপনার জন্য অপেক্ষা করছে।", icon: "📖"});
                             window.notifSentToday.study = true;
                         }
                     }
@@ -1774,7 +1642,7 @@
                 if(dashFinChartInst) dashFinChartInst.destroy();
                 dashFinChartInst = new Chart(ctxFin, { 
                     type: 'doughnut', 
-                    data: { labels: ['মাসিক আয়', 'মাসিক খরচ', 'বর্তমান ব্যালেন্স'], datasets: [{ data: [mInc, mExp, Math.max(0, currentBal)], backgroundColor: ['#10b981', '#ef4444', '#3b82f6'], borderColor: 'transparent' }] }, 
+                    data: { labels: ['মাসিক আয়', 'মাসিক খরচ', 'বর্তমান ব্যালেন্স'], datasets: [{ data: [mInc, mExp, Math.max(0, currentBal)], backgroundColor: ['#10b981', '#ef4444', '#3b82f6'], borderColor: 'transparent' }] }, 
                     options: { plugins: { legend: { position: 'right', labels:{color:labelColor} } }, maintainAspectRatio: false, cutout: '60%' } 
                 });
             }
@@ -1788,7 +1656,7 @@
                 const remaining = Math.max(0, limit - tSmokes);
                 dashSmkChartInst = new Chart(ctxSmk, { 
                     type: 'doughnut', 
-                    data: { labels: ['আজকের খাওয়া', 'বাকি লিমিট'], datasets: [{ data: [tSmokes, remaining], backgroundColor: ['#ef4444', '#334155'], borderColor: 'transparent' }] }, 
+                    data: { labels: ['আজকের খাওয়া', 'বাকি লিমিট'], datasets: [{ data: [tSmokes, remaining], backgroundColor: ['#ef4444', '#334155'], borderColor: 'transparent' }] }, 
                     options: { plugins: { legend: { position: 'right', labels:{color:labelColor} } }, maintainAspectRatio: false, cutout: '70%' } 
                 });
             }
@@ -1800,7 +1668,7 @@
                 appData.initialBalance = Number(val);
                 saveData(true);
                 document.getElementById('initialBalanceInput').value = '';
-                showToast('প্রাথমিক ব্যালেন্স আপডেট হয়েছে!');
+                showToast('প্রাথমিক ব্যালেন্স আপডেট হয়েছে!');
             }
         };
 
@@ -1815,7 +1683,7 @@
                 addXP(15);
                 saveData(true);
                 document.getElementById('studySummaryInput').value = '';
-                showToast('পড়াশোনার সামারি সেভ হয়েছে! +15 XP');
+                showToast('পড়াশোনার সামারি সেভ হয়েছে! +15 XP');
             }
         };
 
@@ -1826,7 +1694,7 @@
                 notifStudy: document.getElementById('toggleNotifStudy').checked,
                 studyTime: document.getElementById('configStudyTime').value || "20:00"
             };
-            saveData(true); showToast('সেটিংস সেভ হয়েছে!');
+            saveData(true); showToast('সেটিংস সেভ হয়েছে!');
         };
 
         function checkHighRiskWindow(hourOpt) {
@@ -1856,177 +1724,7 @@
             clearInterval(studyTimerInt); studyRunning = false;
             studySeconds = 0; updateStudyTimerDisp();
         };
-
-        // ==========================================
-        // NEW FEATURE: Dynamic Daily Routine & To-Do Tracker
-        // ==========================================
-        const routineExamSchedule = {
-            "2026-06-22": "303: Oceanography",
-            "2026-06-25": "304: Hydrology",
-            "2026-06-28": "305: Biogeography",
-            "2026-07-01": "306: Population and Census Geography",
-            "2026-07-05": "307: Rural Geography",
-            "2026-07-09": "308: Geography of Natural Resources",
-            "2026-07-13": "309: Agricultural Systems and Dynamics",
-            "2026-07-16": "310: Geography of Natural Hazards"
-        };
-
-        function routineGetNextExam(dateStr) {
-            const sortedDates = Object.keys(routineExamSchedule).sort();
-            for (let d of sortedDates) {
-                if (dateStr < d) return routineExamSchedule[d];
-            }
-            return null;
-        }
-
-        const routineDateEl = document.getElementById('routineDateEl');
-        const routineTaskListEl = document.getElementById('rtTaskList');
-        const routineTitleEl = document.getElementById('rtRoutineTitle');
-        const routineAddTaskBtn = document.getElementById('rtAddTaskBtn');
-
-        routineDateEl.value = getLocalIsoDate(new Date());
-
-        function routineGetCustomTasks(dateStr) {
-            const saved = localStorage.getItem('userCustomTasks');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                return parsed[dateStr] || [];
-            }
-            return [];
-        }
-
-        function routineSaveCustomTasks(dateStr, tasksArr) {
-            const saved = localStorage.getItem('userCustomTasks');
-            let parsed = saved ? JSON.parse(saved) : {};
-            parsed[dateStr] = tasksArr;
-            localStorage.setItem('userCustomTasks', JSON.stringify(parsed));
-        }
-
-        function routineLoadRoutineForDate(dateStr) {
-            routineTaskListEl.innerHTML = '';
-            const isExamDay = routineExamSchedule.hasOwnProperty(dateStr);
-            const nextExam = routineGetNextExam(dateStr);
-            let systemTasks = [];
-
-            if (dateStr <= "2026-07-16") {
-                if (isExamDay) {
-                    routineTitleEl.textContent = "📝 আজকের রুটিন: পরীক্ষার দিন";
-                    const subject = routineExamSchedule[dateStr];
-                    systemTasks = [
-                        { id: `sys_${dateStr}_1`, time: "সকাল ৭:০০ - ৮:৩০", desc: "ঘুম থেকে ওঠা, ফ্রেশ হওয়া ও পুষ্টিকর নাস্তা", isSystem: true },
-                        { id: `sys_${dateStr}_2`, time: "সকাল ৮:৩০ - ১০:৩০", desc: `ফাইনাল রিভিশন: <strong>${subject}</strong>`, isSystem: true },
-                        { id: `sys_${dateStr}_3`, time: "দুপুর ১২:৩০ - শেষ পর্যন্ত", desc: `📝 পরীক্ষা: <strong>${subject}</strong>`, highlight: true, isSystem: true },
-                        { id: `sys_${dateStr}_4`, time: "সন্ধ্যা ৭:৩০ - রাত ১১:০০", desc: "পরবর্তী পরীক্ষার প্রস্তুতি শুরু", isSystem: true }
-                    ];
-                } else if (nextExam) {
-                    routineTitleEl.textContent = "📚 আজকের রুটিন: স্টাডি ও রিভিশন ডে";
-                    systemTasks = [
-                        { id: `sys_${dateStr}_1`, time: "সকাল ৮:০০ - ১১:৩০", desc: `ডিপ ওয়ার্ক সেশন: <strong>${nextExam}</strong>`, isSystem: true },
-                        { id: `sys_${dateStr}_2`, time: "দুপুর ১২:৩০ - ৩:৩০", desc: `PYQ সলভ ও প্র্যাকটিস: <strong>${nextExam}</strong>`, highlight: true, isSystem: true },
-                        { id: `sys_${dateStr}_3`, time: "সন্ধ্যা ৭:০০ - রাত ১০:৩০", desc: "রিভিশন ও শর্ট নোট তৈরি", isSystem: true }
-                    ];
-                }
-            } else {
-                routineTitleEl.textContent = "✨ আজকের রুটিন: পার্সোনাল টু-ডু লিস্ট";
-            }
-
-            const customTasks = routineGetCustomTasks(dateStr);
-            const allTasks = [...systemTasks, ...customTasks];
-
-            if (allTasks.length === 0) {
-                routineTaskListEl.innerHTML = '<div class="rt-no-task-msg">আজকের কোনো রুটিন সেট করা নেই। ওপরের ফর্ম থেকে নতুন টাস্ক যুক্ত করুন!</div>';
-                return;
-            }
-
-            allTasks.forEach((task) => {
-                const isCompleted = task.isSystem ? (localStorage.getItem(task.id) === 'true') : task.completed;
-
-                const taskCard = document.createElement('div');
-                taskCard.className = `rt-task-card ${task.highlight ? 'rt-highlight' : ''} ${task.isSystem ? '' : 'rt-custom-task'} ${isCompleted ? 'rt-completed' : ''}`;
-                
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'rt-task-checkbox';
-                checkbox.checked = isCompleted;
-                
-                checkbox.addEventListener('change', (e) => {
-                    if (task.isSystem) {
-                        localStorage.setItem(task.id, e.target.checked);
-                    } else {
-                        const currentCustomTasks = routineGetCustomTasks(dateStr);
-                        const taskIndex = currentCustomTasks.findIndex(t => t.id === task.id);
-                        if(taskIndex > -1) {
-                            currentCustomTasks[taskIndex].completed = e.target.checked;
-                            routineSaveCustomTasks(dateStr, currentCustomTasks);
-                        }
-                    }
-                    routineLoadRoutineForDate(dateStr);
-                });
-
-                const contentDiv = document.createElement('div');
-                contentDiv.className = 'rt-task-content';
-                contentDiv.innerHTML = `
-                    <span class="rt-task-time">${task.time || 'নির্ধারিত সময় নেই'}</span>
-                    <span class="rt-task-desc">${task.desc}</span>
-                `;
-
-                taskCard.appendChild(checkbox);
-                taskCard.appendChild(contentDiv);
-
-                if (!task.isSystem) {
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'rt-delete-btn';
-                    deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-                    deleteBtn.title = 'টাস্ক মুছুন';
-                    deleteBtn.addEventListener('click', () => {
-                        let currentCustomTasks = routineGetCustomTasks(dateStr);
-                        currentCustomTasks = currentCustomTasks.filter(t => t.id !== task.id);
-                        routineSaveCustomTasks(dateStr, currentCustomTasks);
-                        routineLoadRoutineForDate(dateStr);
-                    });
-                    taskCard.appendChild(deleteBtn);
-                }
-
-                routineTaskListEl.appendChild(taskCard);
-            });
-        }
-
-        routineAddTaskBtn.addEventListener('click', () => {
-            const timeInput = document.getElementById('rtCustomTime').value.trim();
-            const descInput = document.getElementById('rtCustomDesc').value.trim();
-            const selectedDate = routineDateEl.value;
-
-            if (descInput === '') {
-                alert('অনুগ্রহ করে টাস্কের বিবরণ লিখুন!');
-                return;
-            }
-
-            const newTask = {
-                id: 'custom_' + Date.now(),
-                time: timeInput,
-                desc: descInput,
-                completed: false,
-                isSystem: false
-            };
-
-            const currentTasks = routineGetCustomTasks(selectedDate);
-            currentTasks.push(newTask);
-            routineSaveCustomTasks(selectedDate, currentTasks);
-
-            document.getElementById('rtCustomTime').value = '';
-            document.getElementById('rtCustomDesc').value = '';
-            routineLoadRoutineForDate(selectedDate);
-            showToast('✅ নতুন টাস্ক যুক্ত হয়েছে');
-        });
-
-        document.getElementById('rtCustomDesc').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') routineAddTaskBtn.click();
-        });
-
-        routineDateEl.addEventListener('change', (e) => {
-            routineLoadRoutineForDate(e.target.value);
-        });
-
+        
         // =====================================
         // Initialize display immediately
         // =====================================
