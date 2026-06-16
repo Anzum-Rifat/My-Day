@@ -20,6 +20,7 @@
 
     <style>
         :root {
+            /* Light Theme Variables */
             --bg: #f8fafc; 
             --card: rgba(255, 255, 255, 0.85); 
             --accent: #059669; 
@@ -42,6 +43,7 @@
             --pill-bg: rgba(5, 150, 105, 0.15);
         }
         [data-theme="dark"] {
+            /* Dark Theme Variables */
             --bg: #0f172a; 
             --card: rgba(30, 41, 59, 0.75); 
             --text: #e2e8f0; 
@@ -351,8 +353,8 @@
 
     <div style="padding: 15px; text-align: center; display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap;">
         <label><i class="fa-solid fa-calendar-days"></i> তারিখ: </label>
-        <input type="date" id="currentDate" style="padding: 8px; border-radius: 10px; border: 1px solid var(--accent); background: var(--input-bg); color: var(--text);" onchange="renderAll()">
-        <span id="syncStatus" style="font-size: 0.8em; color: var(--text2);"><i class="fa-solid fa-cloud-arrow-down"></i> অফলাইন</span>
+        <input type="date" id="currentDate" style="padding: 8px; border-radius: 10px; border: 1px solid var(--accent); background: var(--input-bg); color: var(--text);" onchange="onDateChange()">
+        <span id="syncStatus" style="font-size: 0.8em; color: var(--text2); padding: 5px 10px; border-radius: 20px; border: 1px solid var(--border);"><i class="fa-solid fa-cloud-arrow-down"></i> অফলাইন</span>
     </div>
 
     <div style="padding: 0 15px;">
@@ -472,7 +474,7 @@
                 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <label style="font-size:0.9em;">গ্রিড ভিউ:</label>
-                    <select id="habitViewSelect" onchange="renderHabitStack()" style="padding:5px; border-radius:5px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
+                    <select id="habitViewSelect" onchange="renderHabitStack()" style="padding:5px; border-radius:5px; background:var(--input-bg); color:var(--text); border:1px solid var(--border);">
                         <option value="7">গত ৭ দিন</option>
                         <option value="21">গত ২১ দিন</option>
                         <option value="66">গত ৬৬ দিন</option>
@@ -574,7 +576,7 @@
             <div class="card">
                 <h3><i class="fa-solid fa-clock"></i> স্থায়ী নামাজের সময়সূচি (রিমাইন্ডার)</h3>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; font-size:0.9em;" id="prayerScheduleInputs">
-                    </div>
+                </div>
                 <button class="btn btn-cyan mt-2" style="width:100%; margin-top:10px;" onclick="savePrayerTimes()">সময় সেভ করুন</button>
             </div>
 
@@ -689,8 +691,7 @@
                 <h3><i class="fa-solid fa-trophy"></i> গ্যামিফিকেশন ও অ্যাচিভমেন্ট</h3>
                 <p>মোট XP: <strong id="xpText">0</strong> | লেভেল: <strong id="levelText">1</strong></p>
                 <div class="progress-bar"><div class="progress-fill" id="xpProgress" style="width: 0%; background:gold;">0%</div></div>
-                <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:10px;" id="badgeContainer">
-                    </div>
+                <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:10px;" id="badgeContainer"></div>
             </div>
 
             <div class="card" style="border-color:var(--orange);">
@@ -856,7 +857,7 @@
         const firebaseConfig = {
             apiKey: "AIzaSyBeJIekNzQgnzBAn7Dau50JP4PJFn06I6U",
             authDomain: "recover-e1098.firebaseapp.com",
-            databaseURL: "https://recover-e1098-default-rtdb.firebaseio.com",
+            databaseURL: "https://recover-e1098-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "recover-e1098",
             storageBucket: "recover-e1098.firebasestorage.app",
             messagingSenderId: "383772906607",
@@ -864,6 +865,8 @@
         };
         
         firebase.initializeApp(firebaseConfig);  
+        
+        // FIXED FEATURE: Auth is fully removed. Using Realtime Database only.
         const db = firebase.database(); 
         const dbRef = db.ref('recovery_dashboard/my_shared_data'); 
 
@@ -931,29 +934,37 @@
             if(!silent) renderAll();
         }
 
-        // NEW/FIXED FEATURE: Complete removal of Auth logic. Replaced with Direct Database sync.
+        // FIXED FEATURE: Initialize Data from Firebase without Auth
         if (navigator.onLine) {
             dbRef.once('value').then(snap => { 
                 if (snap.exists()) { 
                     appData = { ...defaultData, ...snap.val() }; 
                     localStorage.setItem('recoveryAppData', JSON.stringify(appData));
+                    initNewFeaturesData(); 
                     renderAll(); 
                     document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:var(--accent)"></i> সিঙ্কড';
                 } 
             }).catch(err => console.error("DB Error:", err));
         }
 
+        // FIXED FEATURE: Real-time listener keeps multiple devices in sync automatically
         dbRef.on('value', (snap) => {
             if(isSavingToFirebase) return; 
             if (snap.exists()) {
                 appData = { ...defaultData, ...snap.val() };
                 localStorage.setItem('recoveryAppData', JSON.stringify(appData));
+                initNewFeaturesData();
                 renderAll();
                 document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-rotate" style="color:var(--blue)"></i> রিয়েল-টাইম আপডেটেড';
             }
         });
 
         window.addEventListener('online', () => { showToast('অনলাইন! সিঙ্ক হচ্ছে...'); saveData(true); });
+        
+        function onDateChange() { 
+            updateAllUIs();
+            processRecurring(); 
+        }
 
         /* ==========================================
            2. Utils & Auto Theme & Notifications
@@ -997,7 +1008,6 @@
         function addXP(amount) {
             appData.xp += amount;
             const newLevel = Math.floor(appData.xp / 100) + 1;
-            // NEW/FIXED FEATURE: Safe check before calling confetti()
             if(newLevel > appData.level) { appData.level = newLevel; showToast(`🎉 লেভেল আপ! আপনি এখন লেভেল ${newLevel}`); if(typeof confetti === 'function') confetti(); }
             saveData(true);
         }
@@ -1005,6 +1015,10 @@
         /* ==========================================
            3. UI Rendering
            ========================================== */
+        function updateAllUIs() {
+            if(!localData) return;
+        }
+
         function renderAll() {
             const date = getSelectedDate(); const month = date.slice(0, 7);
             
@@ -1055,6 +1069,7 @@
             document.getElementById('todayUrgeText').innerText = appData.urges.filter(u => u.date === date).length;
 
             renderCategories(); renderGoals();
+            renderNewFeatures();
         }
 
         /* ==========================================
@@ -1068,7 +1083,18 @@
         function updateRoutine() { appData.routines[getSelectedDate()] = { morn: document.getElementById('rtMorn').checked, read: document.getElementById('rtRead').checked, night: document.getElementById('rtNight').checked }; addXP(5); saveData(true); }
         
         function addSmoke() { const c = document.getElementById('smokeCount').value; const p = document.getElementById('smokePrice').value; if(c && p) { appData.smokes.push({ date: getSelectedDate(), count: c, price: p }); saveData(); showToast('রেকর্ড হয়েছে'); } }
-        function calcBMI() { const w = document.getElementById('bmiW').value; const h = document.getElementById('bmiH').value / 100; if(w && h) { const bmi = (w / (h*h)).toFixed(1); let s = "স্বাভাবিক"; if(bmi>25) s="ওজন বেশি"; if(bmi<18.5) s="ওজন কম"; document.getElementById('bmiResult').innerText = `BMI: ${bmi} (${s})`; } }
+        
+        function calcBMI() { 
+            const w = document.getElementById('bmiW').value; const h = document.getElementById('bmiH').value / 100; 
+            if(w && h) { 
+                const bmi = (w / (h*h)).toFixed(1); let s = "স্বাভাবিক"; if(bmi>25) s="ওজন বেশি"; if(bmi<18.5) s="ওজন কম"; 
+                document.getElementById('bmiResult').innerText = `BMI: ${bmi} (${s})`; 
+                appData.bmiHistory.push({date: getSelectedDate(), weight: w, result: bmi + ` (${s})`});
+                if(appData.bmiHistory.length > 5) appData.bmiHistory.shift(); 
+                saveData(true);
+                renderBMIHistory();
+            } 
+        }
         
         function renderCategories() { const iCat = document.getElementById('incomeCat'); const eCat = document.getElementById('expenseCat'); if(iCat) iCat.innerHTML = appData.incCats.map(c => `<option value="${c}">${c}</option>`).join(''); if(eCat) eCat.innerHTML = appData.expCats.map(c => `<option value="${c}">${c}</option>`).join(''); }
         function addIncome() { const a = document.getElementById('incAmount').value; if(a) { appData.incomes.push({ date: getSelectedDate(), category: document.getElementById('incomeCat').value, amount: a }); document.getElementById('incAmount').value=''; addXP(5); saveData(); } }
@@ -1127,6 +1153,8 @@
             setTimeout(()=>{ box.innerHTML += `<div class="chat-bubble chat-bot">${reply}</div>`; box.scrollTop = box.scrollHeight; }, 1000);
         }
 
+        function processRecurring() { }
+
         let exChart, urChart;
         function openAnalytics() {
             document.getElementById('analyticsModal').classList.add('active');
@@ -1140,6 +1168,73 @@
             const urMonths = {}; appData.urges.forEach(u => { const m=u.date.slice(0,7); urMonths[m]=(urMonths[m]||0)+1; });
             const ctxU = document.getElementById('urgeChart').getContext('2d');
             if(urChart) urChart.destroy(); urChart = new Chart(ctxU, { type: 'bar', data: { labels: Object.keys(urMonths), datasets: [{ label: 'আর্জ প্রতিরোধ', data: Object.values(urMonths), backgroundColor: '#f97316' }] }, options:{ maintainAspectRatio: false } });
+
+            const trgCounts = {};
+            appData.advancedTriggerLogs.forEach(t => trgCounts[t.mood] = (trgCounts[t.mood]||0)+1);
+            const ctxAdvT = document.getElementById('advTriggerChart').getContext('2d');
+            if(advTrgChart) advTrgChart.destroy();
+            if(Object.keys(trgCounts).length > 0) {
+                advTrgChart = new Chart(ctxAdvT, { type: 'doughnut', data: { labels: Object.keys(trgCounts), datasets: [{ data: Object.values(trgCounts), backgroundColor: ['#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'] }] }, options: { plugins: { legend: { position: 'right', labels:{color:labelColor} } }, maintainAspectRatio: false } });
+            }
+
+            const months = {};
+            appData.expenses.forEach(e => {
+                const m = e.date.slice(0, 7);
+                months[m] = (months[m]||0) + Number(e.amount);
+            });
+            const mKeys = Object.keys(months).sort().slice(-3); 
+            const actualData = mKeys.map(k => months[k]);
+            
+            let avg = 0;
+            if(actualData.length > 0) {
+                avg = actualData.reduce((a,b)=>a+b, 0) / actualData.length;
+            }
+            
+            let nextMonthLabel = "প্রেডিকশন";
+            if(mKeys.length > 0) {
+                let lastMonthStr = mKeys[mKeys.length-1];
+                let [y, m] = lastMonthStr.split('-');
+                let nd = new Date(y, parseInt(m), 1); 
+                nextMonthLabel = nd.getFullYear() + '-' + String(nd.getMonth()+1).padStart(2, '0');
+            }
+            
+            let chartLabels = [...mKeys, nextMonthLabel];
+            let chartDataActual = [...actualData, null];
+            
+            let chartDataPrediction = [];
+            for(let i=0; i<actualData.length-1; i++) chartDataPrediction.push(null);
+            
+            if(actualData.length > 0) {
+                chartDataPrediction.push(actualData[actualData.length-1]); 
+                chartDataPrediction.push(avg);
+            } else {
+                chartDataPrediction.push(avg);
+            }
+
+            const ctxTrend = document.getElementById('expenseTrendChart').getContext('2d');
+            if(expTrendChart) expTrendChart.destroy();
+            expTrendChart = new Chart(ctxTrend, { 
+                type: 'line', 
+                data: { 
+                    labels: chartLabels, 
+                    datasets: [
+                        { label: 'মোট খরচ', data: chartDataActual, borderColor: '#06b6d4', tension: 0.3, fill:true, backgroundColor:'rgba(6, 182, 212, 0.2)' },
+                        { label: 'প্রেডিকশন (গড়)', data: chartDataPrediction, borderColor: '#f59e0b', borderDash: [5, 5], tension: 0.3, fill:false }
+                    ] 
+                }, 
+                options:{ plugins:{legend:{labels:{color:labelColor}}}, maintainAspectRatio: false } 
+            });
+
+            const calGrid = document.getElementById('moodCalendarGrid');
+            calGrid.innerHTML = '';
+            const today = new Date();
+            for(let i=29; i>=0; i--) {
+                let d = new Date(today); d.setDate(d.getDate() - i);
+                let dStr = getLocalIsoDate(d);
+                let isToday = i===0 ? 'today' : '';
+                let mood = appData.moods[dStr] || '';
+                calGrid.innerHTML += `<div class="calendar-day ${isToday}" title="${dStr}">${mood}</div>`;
+            }
         }
 
         function downloadJSON() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(appData)], {type:'application/json'})); a.download = `recovery_pro_${getSelectedDate()}.json`; a.click(); showToast('ব্যাকআপ ডাউনলোড হয়েছে'); }
@@ -1155,7 +1250,7 @@
         }
 
         // ==========================================
-        // Data Initialization & Monkey Patching
+        // Data Initialization & Extra Logic
         // ==========================================
 
         function initNewFeaturesData() {
@@ -1184,12 +1279,6 @@
             }
         }
         initNewFeaturesData();
-
-        const originalRenderAll = renderAll;
-        renderAll = function() {
-            originalRenderAll();
-            renderNewFeatures();
-        };
 
         function renderNewFeatures() {
             renderBMIHistory();
@@ -1221,19 +1310,6 @@
 
             checkHighRiskWindow();
         }
-
-        const originalCalcBMI = calcBMI;
-        calcBMI = function() {
-            originalCalcBMI();
-            const resText = document.getElementById('bmiResult').innerText;
-            if(resText !== "-") {
-                const w = document.getElementById('bmiW').value;
-                appData.bmiHistory.push({date: getSelectedDate(), weight: w, result: resText.replace('BMI: ', '')});
-                if(appData.bmiHistory.length > 5) appData.bmiHistory.shift(); 
-                saveData(true);
-                renderBMIHistory();
-            }
-        };
 
         function renderBMIHistory() {
             const tbody = document.getElementById('bmiTbody');
@@ -1534,84 +1610,7 @@
             });
         }
 
-        const originalOpenAnalytics = openAnalytics;
-        let expTrendChart, advTrgChart;
-        openAnalytics = function() {
-            originalOpenAnalytics(); 
-            
-            const trgCounts = {};
-            appData.advancedTriggerLogs.forEach(t => trgCounts[t.mood] = (trgCounts[t.mood]||0)+1);
-            const ctxAdvT = document.getElementById('advTriggerChart').getContext('2d');
-            
-            const labelColor = document.documentElement.getAttribute('data-theme') === 'light' ? '#1e293b' : '#e2e8f0';
-
-            if(advTrgChart) advTrgChart.destroy();
-            if(Object.keys(trgCounts).length > 0) {
-                advTrgChart = new Chart(ctxAdvT, { type: 'doughnut', data: { labels: Object.keys(trgCounts), datasets: [{ data: Object.values(trgCounts), backgroundColor: ['#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'] }] }, options: { plugins: { legend: { position: 'right', labels:{color:labelColor} } }, maintainAspectRatio: false } });
-            }
-
-            const months = {};
-            appData.expenses.forEach(e => {
-                const m = e.date.slice(0, 7);
-                months[m] = (months[m]||0) + Number(e.amount);
-            });
-            const mKeys = Object.keys(months).sort().slice(-3); 
-            const actualData = mKeys.map(k => months[k]);
-            
-            let avg = 0;
-            if(actualData.length > 0) {
-                avg = actualData.reduce((a,b)=>a+b, 0) / actualData.length;
-            }
-            
-            let nextMonthLabel = "প্রেডিকশন";
-            if(mKeys.length > 0) {
-                let lastMonthStr = mKeys[mKeys.length-1];
-                let [y, m] = lastMonthStr.split('-');
-                let nd = new Date(y, parseInt(m), 1); 
-                nextMonthLabel = nd.getFullYear() + '-' + String(nd.getMonth()+1).padStart(2, '0');
-            }
-            
-            let chartLabels = [...mKeys, nextMonthLabel];
-            let chartDataActual = [...actualData, null];
-            
-            let chartDataPrediction = [];
-            for(let i=0; i<actualData.length-1; i++) chartDataPrediction.push(null);
-            
-            if(actualData.length > 0) {
-                chartDataPrediction.push(actualData[actualData.length-1]); 
-                chartDataPrediction.push(avg);
-            } else {
-                chartDataPrediction.push(avg);
-            }
-
-            const ctxTrend = document.getElementById('expenseTrendChart').getContext('2d');
-            if(expTrendChart) expTrendChart.destroy();
-            expTrendChart = new Chart(ctxTrend, { 
-                type: 'line', 
-                data: { 
-                    labels: chartLabels, 
-                    datasets: [
-                        { label: 'মোট খরচ', data: chartDataActual, borderColor: '#06b6d4', tension: 0.3, fill:true, backgroundColor:'rgba(6, 182, 212, 0.2)' },
-                        { label: 'প্রেডিকশন (গড়)', data: chartDataPrediction, borderColor: '#f59e0b', borderDash: [5, 5], tension: 0.3, fill:false }
-                    ] 
-                }, 
-                options:{ plugins:{legend:{labels:{color:labelColor}}}, maintainAspectRatio: false } 
-            });
-
-            const calGrid = document.getElementById('moodCalendarGrid');
-            calGrid.innerHTML = '';
-            const today = new Date();
-            for(let i=29; i>=0; i--) {
-                let d = new Date(today); d.setDate(d.getDate() - i);
-                let dStr = getLocalIsoDate(d);
-                let isToday = i===0 ? 'today' : '';
-                let mood = appData.moods[dStr] || '';
-                calGrid.innerHTML += `<div class="calendar-day ${isToday}" title="${dStr}">${mood}</div>`;
-            }
-        };
-        
         let dashFinChartInst, dashSmkChartInst;
-        
         function renderDashboardCharts(currentBal) {
             const d = getSelectedDate(); const month = d.slice(0, 7);
             const mInc = appData.incomes.filter(i => i.date.startsWith(month)).reduce((a,b)=>a+Number(b.amount),0);
@@ -1708,9 +1707,7 @@
             studySeconds = 0; updateStudyTimerDisp();
         };
 
-        renderNewFeatures();
-        
-        // FIXED FEATURE: Forced initial render correctly upon load
+        // Initialize display immediately
         renderAll();
 
     </script>
