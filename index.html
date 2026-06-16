@@ -8,10 +8,9 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;700;800&display=swap" rel="stylesheet">
-    
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -634,19 +633,20 @@
            1. Core Setup & Master Data
            ========================================== */
         
-        // FIXED FEATURE: Unified Firebase Sync configuration
-        const firebaseConfig = { 
-            apiKey: "AIzaSyDKniQatcaQPCnB87Gz-6XeLaXcAQc28rc", 
-            authDomain: "hisab-tracker-9d867.firebaseapp.com", 
-            databaseURL: "https://hisab-tracker-9d867-default-rtdb.asia-southeast1.firebasedatabase.app", 
-            projectId: "hisab-tracker-9d867", 
-            storageBucket: "hisab-tracker-9d867.firebasestorage.app", 
-            messagingSenderId: "424669328740", 
-            appId: "1:424669328740:web:67bc86e8a0cb03850bb671" 
+        // FIXED FEATURE: Using the newly provided Firebase Config completely
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeJIekNzQgnzBAn7Dau50JP4PJFn06I6U",
+            authDomain: "recover-e1098.firebaseapp.com",
+            databaseURL: "https://recover-e1098-default-rtdb.asia-southeast1.firebasedatabase.app/", // আপনি যদি এশিয়া রিজিয়ন সিলেক্ট করে থাকেন, তবে এই URL টি কনসোল থেকে মিলিয়ে নেবেন
+            projectId: "recover-e1098",
+            storageBucket: "recover-e1098.firebasestorage.app",
+            messagingSenderId: "383772906607",
+            appId: "1:383772906607:web:bc836930808ca31419299a"
         };
+        
         firebase.initializeApp(firebaseConfig);  
         const db = firebase.database(); 
-        const dbRef = db.ref('recovery_dashboard/my_shared_data'); // Unified Path to fix cross-device syncing
+        const dbRef = db.ref('recovery_dashboard/my_shared_data'); 
 
         const defaultData = {
             streakDays: 0, debtPaid: 0, savingsGoal: 0, monthlyBudget: 0, pomodoroSessions: 0, xp: 0, level: 1,
@@ -688,7 +688,6 @@
             "হে আল্লাহ, আমাকে হালাল রিজিক দান করুন এবং হারাম থেকে দূরে রাখুন।" 
         ];
 
-        // FIXED FEATURE: Real-time saving and sync mechanism updated correctly
         let isSavingToFirebase = false;
 
         function saveData(silent = false) {
@@ -713,7 +712,6 @@
             if(!silent) renderAll();
         }
 
-        // FIXED FEATURE: Firebase real-time listener enabled for cross-device view update
         dbRef.on('value', (snap) => {
             if(isSavingToFirebase) return; 
             if (snap.exists()) {
@@ -751,7 +749,6 @@
         function toggleTheme() { applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); }
         applyTheme(localStorage.getItem('appTheme'));
 
-        // FIXED FEATURE: Notification Permission Request System
         function requestNotification() {
             if('Notification' in window) { 
                 Notification.requestPermission().then(p => { 
@@ -1162,7 +1159,6 @@
 
         if(!window.notifSentToday) window.notifSentToday = {};
 
-        // Notifications logic managed by setInterval
         setInterval(() => {
             const now = new Date();
             const dStr = getLocalIsoDate(now);
