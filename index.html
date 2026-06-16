@@ -10,7 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;700;800&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -21,7 +20,6 @@
 
     <style>
         :root {
-            /* Light Theme Variables */
             --bg: #f8fafc; 
             --card: rgba(255, 255, 255, 0.85); 
             --accent: #059669; 
@@ -44,7 +42,6 @@
             --pill-bg: rgba(5, 150, 105, 0.15);
         }
         [data-theme="dark"] {
-            /* Dark Theme Variables */
             --bg: #0f172a; 
             --card: rgba(30, 41, 59, 0.75); 
             --text: #e2e8f0; 
@@ -76,7 +73,6 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
         
-        /* Glassmorphism Header */
         .header { 
             background: var(--card); 
             backdrop-filter: var(--glass-blur);
@@ -99,7 +95,6 @@
             -webkit-text-fill-color: transparent; 
         }
         
-        /* Theme Toggle Button */
         .theme-toggle-btn { 
             background: var(--input-bg); 
             border: 1px solid var(--border); 
@@ -118,7 +113,6 @@
             border-color: var(--accent);
         }
         
-        /* Grid & Cards */
         .main-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 15px; padding: 15px; }
         .card { 
             background: var(--card); 
@@ -144,7 +138,6 @@
             font-size: 1.3em;
         }
         
-        /* Hero Section */
         .hero-section { display: flex; flex-wrap: wrap; gap: 15px; padding: 15px; }
         .hero-card { 
             flex: 1; 
@@ -160,7 +153,6 @@
         }
         .hero-card:hover { transform: translateY(-2px); }
         
-        /* Donut Chart Style */
         .donut-chart { 
             width: 75px; 
             height: 75px; 
@@ -175,7 +167,6 @@
             border: 2px solid var(--accent);
         }
         
-        /* Inputs */
         .input-group { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
         .input-group input, .input-group select, textarea { 
             flex: 1; 
@@ -199,7 +190,6 @@
             transition: all 0.2s ease;
         }
         
-        /* Buttons */
         .btn { 
             padding: 10px 16px; 
             border-radius: 10px; 
@@ -221,7 +211,6 @@
         .btn-cyan { background-color: var(--cyan); color: #000; }
         .btn-pink { background-color: var(--pink); }
         
-        /* Badges & Progress */
         .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.8em; font-weight: bold; display: inline-block; margin: 2px; }
         .badge-success { background: var(--accent); color: #fff; }
         .badge-warning { background: var(--warning); color: #fff; }
@@ -229,7 +218,6 @@
         .progress-bar { height: 10px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 8px 0; }
         .progress-fill { height: 100%; background: var(--accent); text-align: center; font-size: 0.7em; color: #fff; font-weight: bold; line-height: 10px; transition: width 0.3s; }
         
-        /* Bottom Navigation */
         .bottom-nav { 
             position: fixed; 
             bottom: 0; 
@@ -272,12 +260,10 @@
         }
         .bottom-nav button i { font-size: 1.5em; margin-bottom: 4px; }
         
-        /* Layout */
         .tab-content { display: none; animation: fadeUp 0.4s ease; }
         .tab-content.active { display: block; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Modals & Toasts */
         .toast { 
             position: fixed; 
             top: 20px; 
@@ -299,7 +285,6 @@
         .modal-overlay.active { display: flex; }
         .modal { background: var(--card); padding: 25px; border-radius: 16px; width: 100%; max-width: 600px; max-height: 85vh; overflow-y: auto; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
         
-        /* Micro Interactions */
         .voice-btn { background: var(--purple); color: white; border: none; border-radius: 50%; width: 42px; height: 42px; cursor: pointer; transition: all 0.2s ease;}
         .voice-btn:hover { transform: scale(1.05); }
         .voice-btn.listening { background: var(--danger); animation: pulse 1s infinite; }
@@ -335,10 +320,8 @@
         
         @keyframes riskPulse { 0% { box-shadow: 0 0 10px var(--danger); } 50% { box-shadow: 0 0 30px var(--danger); } 100% { box-shadow: 0 0 10px var(--danger); } }
 
-        /* NEW/FIXED FEATURE: Add Missing .mt-2 Utility Class */
         .mt-2 { margin-top: 10px; }
 
-        /* Media Queries for Mobile Responsiveness */
         @media (max-width: 768px) {
             .main-grid { grid-template-columns: 1fr; gap: 12px; padding: 10px; }
             .hero-section { flex-direction: column; gap: 12px; padding: 10px; }
@@ -881,10 +864,6 @@
         };
         
         firebase.initializeApp(firebaseConfig);  
-        
-        // NEW/FIXED FEATURE: Added Auth Initialization
-        const auth = firebase.auth(); 
-        
         const db = firebase.database(); 
         const dbRef = db.ref('recovery_dashboard/my_shared_data'); 
 
@@ -941,7 +920,7 @@
                 isSavingToFirebase = true;
                 dbRef.set(appData).then(() => { 
                     document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:var(--accent)"></i> সিঙ্কড'; 
-                    setTimeout(() => isSavingToFirebase = false, 1000);
+                    setTimeout(() => isSavingToFirebase = false, 1500);
                 }).catch(e => {
                     console.log(e);
                     isSavingToFirebase = false;
@@ -952,20 +931,17 @@
             if(!silent) renderAll();
         }
 
-        // NEW/FIXED FEATURE: Auth state listener wrapper ensures anonymous login functions correctly
-        auth.signInAnonymously().then(() => { 
-            auth.onAuthStateChanged(user => { 
-                if (user && navigator.onLine) { 
-                    dbRef.once('value').then(snap => { 
-                        if (snap.exists()) { 
-                            appData = { ...defaultData, ...snap.val() }; 
-                            saveData(true); 
-                            renderAll(); 
-                        } 
-                    }); 
+        // NEW/FIXED FEATURE: Complete removal of Auth logic. Replaced with Direct Database sync.
+        if (navigator.onLine) {
+            dbRef.once('value').then(snap => { 
+                if (snap.exists()) { 
+                    appData = { ...defaultData, ...snap.val() }; 
+                    localStorage.setItem('recoveryAppData', JSON.stringify(appData));
+                    renderAll(); 
+                    document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:var(--accent)"></i> সিঙ্কড';
                 } 
-            }); 
-        });
+            }).catch(err => console.error("DB Error:", err));
+        }
 
         dbRef.on('value', (snap) => {
             if(isSavingToFirebase) return; 
@@ -1021,6 +997,7 @@
         function addXP(amount) {
             appData.xp += amount;
             const newLevel = Math.floor(appData.xp / 100) + 1;
+            // NEW/FIXED FEATURE: Safe check before calling confetti()
             if(newLevel > appData.level) { appData.level = newLevel; showToast(`🎉 লেভেল আপ! আপনি এখন লেভেল ${newLevel}`); if(typeof confetti === 'function') confetti(); }
             saveData(true);
         }
@@ -1156,7 +1133,6 @@
             const cats = {}; appData.expenses.forEach(e => cats[e.category] = (cats[e.category]||0) + Number(e.amount));
             const ctxE = document.getElementById('expenseChart').getContext('2d');
             
-            // NEW/FIXED FEATURE: Check data-theme for Chart.js label color adaptation
             const labelColor = document.documentElement.getAttribute('data-theme') === 'light' ? '#1e293b' : '#e2e8f0';
 
             if(exChart) exChart.destroy(); exChart = new Chart(ctxE, { type: 'pie', data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'] }] }, options: { plugins: { legend: { position: 'right', labels:{color: labelColor} } }, maintainAspectRatio: false } });
@@ -1388,11 +1364,11 @@
             if(!cont) return;
             const pts = appData.prayerTimes;
             cont.innerHTML = `
-                <div>ফজর: <input type="time" id="ptFajr" value="${pts.fajr}" style="padding:5px; width:100%; border-radius:5px; background:var(--bg); color:var(--text); border:1px solid var(--border);"></div>
-                <div>যোহর: <input type="time" id="ptDhuhr" value="${pts.dhuhr}" style="padding:5px; width:100%; border-radius:5px; background:var(--bg); color:var(--text); border:1px solid var(--border);"></div>
-                <div>আসর: <input type="time" id="ptAsr" value="${pts.asr}" style="padding:5px; width:100%; border-radius:5px; background:var(--bg); color:var(--text); border:1px solid var(--border);"></div>
-                <div>মাগরিব: <input type="time" id="ptMaghrib" value="${pts.maghrib}" style="padding:5px; width:100%; border-radius:5px; background:var(--bg); color:var(--text); border:1px solid var(--border);"></div>
-                <div>এশা: <input type="time" id="ptIsha" value="${pts.isha}" style="padding:5px; width:100%; border-radius:5px; background:var(--bg); color:var(--text); border:1px solid var(--border);"></div>
+                <div>ফজর: <input type="time" id="ptFajr" value="${pts.fajr}" style="padding:5px; width:100%; border-radius:5px; background:var(--input-bg); color:var(--text); border:1px solid var(--border);"></div>
+                <div>যোহর: <input type="time" id="ptDhuhr" value="${pts.dhuhr}" style="padding:5px; width:100%; border-radius:5px; background:var(--input-bg); color:var(--text); border:1px solid var(--border);"></div>
+                <div>আসর: <input type="time" id="ptAsr" value="${pts.asr}" style="padding:5px; width:100%; border-radius:5px; background:var(--input-bg); color:var(--text); border:1px solid var(--border);"></div>
+                <div>মাগরিব: <input type="time" id="ptMaghrib" value="${pts.maghrib}" style="padding:5px; width:100%; border-radius:5px; background:var(--input-bg); color:var(--text); border:1px solid var(--border);"></div>
+                <div>এশা: <input type="time" id="ptIsha" value="${pts.isha}" style="padding:5px; width:100%; border-radius:5px; background:var(--input-bg); color:var(--text); border:1px solid var(--border);"></div>
             `;
             const month = getSelectedDate().slice(0, 7);
             let totalPossible = 0; let totalDone = 0;
@@ -1567,7 +1543,6 @@
             appData.advancedTriggerLogs.forEach(t => trgCounts[t.mood] = (trgCounts[t.mood]||0)+1);
             const ctxAdvT = document.getElementById('advTriggerChart').getContext('2d');
             
-            // NEW/FIXED FEATURE: Added Data-Theme Check for Chart.js text color
             const labelColor = document.documentElement.getAttribute('data-theme') === 'light' ? '#1e293b' : '#e2e8f0';
 
             if(advTrgChart) advTrgChart.destroy();
@@ -1650,7 +1625,7 @@
                 if(dashFinChartInst) dashFinChartInst.destroy();
                 dashFinChartInst = new Chart(ctxFin, { 
                     type: 'doughnut', 
-                    data: { labels: ['মাসিক আয়', 'মাসিক খরচ', 'বর্তমান ব্যালেন্স'], datasets: [{ data: [mInc, mExp, Math.max(0, currentBal)], backgroundColor: ['#10b981', '#ef4444', '#3b82f6'] }] }, 
+                    data: { labels: ['মাসিক আয়', 'মাসিক খরচ', 'বর্তমান ব্যালেন্স'], datasets: [{ data: [mInc, mExp, Math.max(0, currentBal)], backgroundColor: ['#10b981', '#ef4444', '#3b82f6'], borderColor: 'transparent' }] }, 
                     options: { plugins: { legend: { position: 'right', labels:{color:labelColor} } }, maintainAspectRatio: false, cutout: '60%' } 
                 });
             }
@@ -1664,7 +1639,7 @@
                 const remaining = Math.max(0, limit - tSmokes);
                 dashSmkChartInst = new Chart(ctxSmk, { 
                     type: 'doughnut', 
-                    data: { labels: ['আজকের খাওয়া', 'বাকি লিমিট'], datasets: [{ data: [tSmokes, remaining], backgroundColor: ['#ef4444', '#334155'] }] }, 
+                    data: { labels: ['আজকের খাওয়া', 'বাকি লিমিট'], datasets: [{ data: [tSmokes, remaining], backgroundColor: ['#ef4444', '#334155'], borderColor: 'transparent' }] }, 
                     options: { plugins: { legend: { position: 'right', labels:{color:labelColor} } }, maintainAspectRatio: false, cutout: '70%' } 
                 });
             }
@@ -1735,8 +1710,8 @@
 
         renderNewFeatures();
         
-renderAll(); // <-- এই লাইনটি যোগ করো
-renderNewFeatures();
+        // FIXED FEATURE: Forced initial render correctly upon load
+        renderAll();
 
     </script>
 </body>
