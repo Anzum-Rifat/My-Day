@@ -8,9 +8,10 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -116,7 +117,6 @@
         .habit-grid .check-box.done { background: var(--accent); color: #000; }
         .coping-list li { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); list-style: none; display: flex; gap: 10px; align-items: center;}
         
-        /* NEW FEATURE: High Risk Banner Animation */
         @keyframes riskPulse { 0% { box-shadow: 0 0 10px var(--danger); } 50% { box-shadow: 0 0 30px var(--danger); } 100% { box-shadow: 0 0 10px var(--danger); } }
     </style>
 </head>
@@ -633,8 +633,20 @@
         /* ==========================================
            1. Core Setup & Master Data
            ========================================== */
-        const firebaseConfig = { apiKey: "AIzaSyDKniQatcaQPCnB87Gz-6XeLaXcAQc28rc", authDomain: "hisab-tracker-9d867.firebaseapp.com", databaseURL: "https://hisab-tracker-9d867-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "hisab-tracker-9d867", storageBucket: "hisab-tracker-9d867.firebasestorage.app", messagingSenderId: "424669328740", appId: "1:424669328740:web:67bc86e8a0cb03850bb671" };
-        firebase.initializeApp(firebaseConfig); const auth = firebase.auth(); const db = firebase.database(); let dbRef = null;
+        
+        // FIXED FEATURE: Unified Firebase Sync configuration
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDKniQatcaQPCnB87Gz-6XeLaXcAQc28rc", 
+            authDomain: "hisab-tracker-9d867.firebaseapp.com", 
+            databaseURL: "https://hisab-tracker-9d867-default-rtdb.asia-southeast1.firebasedatabase.app", 
+            projectId: "hisab-tracker-9d867", 
+            storageBucket: "hisab-tracker-9d867.firebasestorage.app", 
+            messagingSenderId: "424669328740", 
+            appId: "1:424669328740:web:67bc86e8a0cb03850bb671" 
+        };
+        firebase.initializeApp(firebaseConfig);  
+        const db = firebase.database(); 
+        const dbRef = db.ref('recovery_dashboard/my_shared_data'); // Unified Path to fix cross-device syncing
 
         const defaultData = {
             streakDays: 0, debtPaid: 0, savingsGoal: 0, monthlyBudget: 0, pomodoroSessions: 0, xp: 0, level: 1,
@@ -645,7 +657,6 @@
 
         let appData = JSON.parse(localStorage.getItem('recoveryAppData')) || JSON.parse(JSON.stringify(defaultData));
 
-        // FIXED FEATURE JS: Typo fixed in quotesLib string ("নষ্ট করবেন ঘন করবেন না" -> "নষ্ট করবেন না")
         const quotesLib = [
             "অন্ধকার যতই গভীর হোক, ভোর আসবেই।", "জুয়া আপনাকে ধনী করবে না, এটি আপনাকে নিঃস্ব করবে।", "আজকের কষ্ট আগামীকালের শক্তি।",
             "প্রতিটি জুয়া-মুক্ত দিন একটি বড় বিজয়।", "আপনার পরিবার আপনার সবচেয়ে বড় সম্পদ, জুয়া নয়।", "টাকা হারানো যায়, কিন্তু বিশ্বাস হারালে ফেরে না।",
@@ -659,7 +670,6 @@
             "ভুল থেকে শিক্ষা নেওয়াই বুদ্ধিমানের কাজ।", "সাময়িক উত্তেজনার জন্য স্থায়ী শান্তি নষ্ট করবেন না।", "আপনি একা নন, এই যুদ্ধে আমরা সাথে আছি।"
         ];
 
-        // NEW FEATURE JS: Array of Motivational Quotes for Quitting Smoking
         const smokeQuotesLib = [
             "প্রতিটি না-খাওয়া সিগারেট আপনার আয়ু বাড়াচ্ছে।",
             "সিগারেট আপনাকে নয়, আপনি সিগারেটকে নিয়ন্ত্রণ করুন।",
@@ -678,18 +688,42 @@
             "হে আল্লাহ, আমাকে হালাল রিজিক দান করুন এবং হারাম থেকে দূরে রাখুন।" 
         ];
 
+        // FIXED FEATURE: Real-time saving and sync mechanism updated correctly
+        let isSavingToFirebase = false;
+
         function saveData(silent = false) {
             const arrFields = ['expenses', 'incomes', 'smokes', 'urges', 'quran', 'dhikr', 'exercises', 'sleep', 'incCats', 'expCats'];
             arrFields.forEach(f => { if(!Array.isArray(appData[f])) appData[f] = Object.values(appData[f] || {}); });
             if(!appData.goals) appData.goals = {short:[], long:[]};
+            
             localStorage.setItem('recoveryAppData', JSON.stringify(appData));
+            
             if (navigator.onLine && dbRef) {
-                dbRef.set(appData).then(() => { document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:var(--accent)"></i> সিঙ্কড'; }).catch(e => console.log(e));
-            } else { document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-cloud-arrow-down" style="color:var(--warning)"></i> অফলাইন'; }
+                isSavingToFirebase = true;
+                dbRef.set(appData).then(() => { 
+                    document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="color:var(--accent)"></i> সিঙ্কড'; 
+                    setTimeout(() => isSavingToFirebase = false, 1000);
+                }).catch(e => {
+                    console.log(e);
+                    isSavingToFirebase = false;
+                });
+            } else { 
+                document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-cloud-arrow-down" style="color:var(--warning)"></i> অফলাইন'; 
+            }
             if(!silent) renderAll();
         }
 
-        auth.signInAnonymously().then(() => { auth.onAuthStateChanged(user => { if (user) { dbRef = db.ref('users/' + user.uid + '/data'); if (navigator.onLine) { dbRef.once('value').then(snap => { if (snap.exists()) { appData = { ...defaultData, ...snap.val() }; saveData(true); renderAll(); } }); } } }); });
+        // FIXED FEATURE: Firebase real-time listener enabled for cross-device view update
+        dbRef.on('value', (snap) => {
+            if(isSavingToFirebase) return; 
+            if (snap.exists()) {
+                appData = { ...defaultData, ...snap.val() };
+                localStorage.setItem('recoveryAppData', JSON.stringify(appData));
+                renderAll();
+                document.getElementById('syncStatus').innerHTML = '<i class="fa-solid fa-rotate" style="color:var(--blue)"></i> রিয়েল-টাইম আপডেটেড';
+            }
+        });
+
         window.addEventListener('online', () => { showToast('অনলাইন! সিঙ্ক হচ্ছে...'); saveData(true); });
 
         /* ==========================================
@@ -717,8 +751,19 @@
         function toggleTheme() { applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); }
         applyTheme(localStorage.getItem('appTheme'));
 
+        // FIXED FEATURE: Notification Permission Request System
         function requestNotification() {
-            if('Notification' in window) { Notification.requestPermission().then(p => { if(p==='granted') { showToast('নোটিফিকেশন চালু হয়েছে!'); } }); }
+            if('Notification' in window) { 
+                Notification.requestPermission().then(p => { 
+                    if(p==='granted') { 
+                        showToast('নোটিফিকেশন চালু হয়েছে!'); 
+                    } else {
+                        showToast('নোটিফিকেশন পারমিশন দেওয়া হয়নি!');
+                    }
+                }); 
+            } else {
+                alert('আপনার ব্রাউজারে নোটিফিকেশন সাপোর্ট করে না।');
+            }
         }
 
         function addXP(amount) {
@@ -882,9 +927,9 @@
         // ==========================================
 
         function initNewFeaturesData() {
-            if(appData.initialBalance === undefined) appData.initialBalance = 0; // NEW FEATURE JS: For current balance
-            if(!appData.appConfig) appData.appConfig = { notifPrayer: true, notifWater: true, notifStudy: true, studyTime: "20:00" }; // NEW FEATURE JS
-            if(!appData.studySummaries) appData.studySummaries = {}; // NEW FEATURE JS
+            if(appData.initialBalance === undefined) appData.initialBalance = 0; 
+            if(!appData.appConfig) appData.appConfig = { notifPrayer: true, notifWater: true, notifStudy: true, studyTime: "20:00" }; 
+            if(!appData.studySummaries) appData.studySummaries = {}; 
 
             if(!appData.prayerTimes) appData.prayerTimes = {fajr:"04:30", dhuhr:"13:00", asr:"16:30", maghrib:"18:30", isha:"20:00"};
             if(!appData.bmiHistory) appData.bmiHistory = [];
@@ -921,17 +966,14 @@
             renderPrayerTimes();
             renderVisionImage();
 
-            // NEW FEATURE JS: Update Current Balance UI
             let totalIn = appData.incomes.reduce((a,b)=>a+Number(b.amount),0);
             let totalEx = appData.expenses.reduce((a,b)=>a+Number(b.amount),0);
             let cBal = Number(appData.initialBalance) + totalIn - totalEx;
             const balDisp = document.getElementById('currentBalanceDisplay');
             if(balDisp) balDisp.innerText = formatMoney(cBal);
 
-            // NEW FEATURE JS: Render Dashboard Charts
             renderDashboardCharts(cBal);
 
-            // NEW FEATURE JS: Render Study Summary and Motivation
             const dStr = getSelectedDate();
             const sumDisp = document.getElementById('studySummaryDisplay');
             if(sumDisp) sumDisp.innerText = appData.studySummaries[dStr] ? `আজকের সামারি: ${appData.studySummaries[dStr]}` : "আজকের কোনো সামারি সেভ করা হয়নি।";
@@ -939,14 +981,12 @@
             const sQuote = document.getElementById('smokeMotivationQuote');
             if(sQuote) sQuote.innerText = `"${smokeQuotesLib[Math.floor(Math.random()*smokeQuotesLib.length)]}"`;
 
-            // NEW FEATURE JS: Render App Config Settings
             const cfg = appData.appConfig;
             if(document.getElementById('toggleNotifPrayer')) document.getElementById('toggleNotifPrayer').checked = cfg.notifPrayer;
             if(document.getElementById('toggleNotifWater')) document.getElementById('toggleNotifWater').checked = cfg.notifWater;
             if(document.getElementById('toggleNotifStudy')) document.getElementById('toggleNotifStudy').checked = cfg.notifStudy;
             if(document.getElementById('configStudyTime')) document.getElementById('configStudyTime').value = cfg.studyTime;
 
-            // NEW FEATURE JS: High Risk Banner Checker (7 PM - 12 AM)
             checkHighRiskWindow();
         }
 
@@ -1122,20 +1162,18 @@
 
         if(!window.notifSentToday) window.notifSentToday = {};
 
-        // NEW FEATURE JS: Advanced Notifications logic using setInterval
+        // Notifications logic managed by setInterval
         setInterval(() => {
             const now = new Date();
             const dStr = getLocalIsoDate(now);
             const currentHour = now.getHours();
             
-            // Recheck High Risk Window
             checkHighRiskWindow(currentHour);
 
             if(Notification.permission === 'granted') {
                 if(window.notifSentToday.date !== dStr) window.notifSentToday = { date: dStr };
                 const waqtBn = {fajr: 'ফজর', dhuhr: 'যোহর', asr: 'আসর', maghrib: 'মাগরিব', isha: 'এশা'};
 
-                // Prayer Notifs
                 if(appData.appConfig.notifPrayer && appData.prayerTimes) {
                     for(let [waqt, time] of Object.entries(appData.prayerTimes)) {
                         let [th, tm] = time.split(':').map(Number);
@@ -1159,7 +1197,6 @@
                     }
                 }
 
-                // Study Notifs
                 if(appData.appConfig.notifStudy && appData.appConfig.studyTime) {
                     let [sh, sm] = appData.appConfig.studyTime.split(':').map(Number);
                     if(now.getHours() === sh && now.getMinutes() === sm) {
@@ -1338,15 +1375,10 @@
                 calGrid.innerHTML += `<div class="calendar-day ${isToday}" title="${dStr}">${mood}</div>`;
             }
         };
-
-        // ==========================================
-        // NEW FEATURE JS: Added Dashboard Donut Charts, Settings & Study Timer
-        // ==========================================
         
         let dashFinChartInst, dashSmkChartInst;
         
         function renderDashboardCharts(currentBal) {
-            // Finance Chart (Monthly)
             const d = getSelectedDate(); const month = d.slice(0, 7);
             const mInc = appData.incomes.filter(i => i.date.startsWith(month)).reduce((a,b)=>a+Number(b.amount),0);
             const mExp = appData.expenses.filter(e => e.date.startsWith(month)).reduce((a,b)=>a+Number(b.amount),0);
@@ -1362,13 +1394,11 @@
                 });
             }
 
-            // Smoke Chart (Today's smoked vs Goal)
             const tSmokes = appData.smokes.filter(s => s.date === d).reduce((a,b)=>a+Number(b.count), 0);
             const cSmk = document.getElementById('dashSmokeChart');
             if(cSmk) {
                 const ctxSmk = cSmk.getContext('2d');
                 if(dashSmkChartInst) dashSmkChartInst.destroy();
-                // Assume default limit is 5 for chart visualization if not set
                 const limit = 5; 
                 const remaining = Math.max(0, limit - tSmokes);
                 dashSmkChartInst = new Chart(ctxSmk, { 
@@ -1418,12 +1448,11 @@
             const h = hourOpt !== undefined ? hourOpt : new Date().getHours();
             const banner = document.getElementById('highRiskBanner');
             if(banner) {
-                if(h >= 19 && h <= 23) banner.style.display = "block"; // 7 PM to 11:59 PM
+                if(h >= 19 && h <= 23) banner.style.display = "block"; 
                 else banner.style.display = "none";
             }
         }
 
-        // Study Timer Logic
         let studyTimerInt, studySeconds = 0, studyRunning = false;
         function updateStudyTimerDisp() {
             const h = Math.floor(studySeconds / 3600);
